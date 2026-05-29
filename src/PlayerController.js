@@ -44,11 +44,15 @@ export class PlayerController {
     this.onKeyUpRef = (e) => this.handleKeyUp(e);
     this.onMouseMoveRef = (e) => this.handleMouseMove(e);
     this.onMouseDownRef = (e) => this.handleMouseDown(e);
+    this.onContextMenuRef = (e) => {
+      if (!this.hero.isDead) e.preventDefault();
+    };
 
     window.addEventListener('keydown', this.onKeyDownRef);
     window.addEventListener('keyup', this.onKeyUpRef);
     window.addEventListener('mousemove', this.onMouseMoveRef);
     window.addEventListener('mousedown', this.onMouseDownRef);
+    window.addEventListener('contextmenu', this.onContextMenuRef);
   }
 
   handleKeyDown(e) {
@@ -69,6 +73,11 @@ export class PlayerController {
     // Potion activation
     if (e.key === 'e' || e.key === 'E' || e.key === 'Shift') {
       this.triggerPotionUse();
+    }
+
+    // Special Ability activation
+    if (e.key === 'q' || e.key === 'Q') {
+      this.triggerSpecialAbility();
     }
   }
 
@@ -96,6 +105,9 @@ export class PlayerController {
     if (this.hero.isDead) return;
     if (e.button === 0) { // Left-click to shoot
       this.shootTowardsMouse();
+    } else if (e.button === 2) { // Right-click to trigger Special
+      e.preventDefault();
+      this.triggerSpecialAbility();
     }
   }
 
@@ -141,6 +153,12 @@ export class PlayerController {
     // Query active entities in game loop context via custom event or global accessor
     const event = new CustomEvent('request-potion-use');
     window.dispatchEvent(event);
+  }
+
+  triggerSpecialAbility() {
+    if (this.hero && typeof this.hero.useSpecial === 'function') {
+      this.hero.useSpecial(this.projectileManager, this.hero.scene);
+    }
   }
 
   /**
@@ -205,5 +223,6 @@ export class PlayerController {
     window.removeEventListener('keyup', this.onKeyUpRef);
     window.removeEventListener('mousemove', this.onMouseMoveRef);
     window.removeEventListener('mousedown', this.onMouseDownRef);
+    window.removeEventListener('contextmenu', this.onContextMenuRef);
   }
 }

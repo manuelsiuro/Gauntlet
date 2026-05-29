@@ -6,7 +6,7 @@ import { DungeonManager } from './DungeonManager';
 import { ProjectileManager } from './ProjectileManager';
 import { PlayerController } from './PlayerController';
 import { soundManager } from './SoundManager';
-import { getLevelMap } from './DungeonMaps';
+import { getLevelMap, getLevelTheme } from './DungeonMaps';
 import { textureGenerator } from './TextureGenerator';
 
 /**
@@ -126,19 +126,28 @@ export class GameLoop {
 
     // 1. Build Dungeon using map grid
     this.dungeonManager = new DungeonManager(this.scene, this.physicsWorld);
+    let activeTheme = 'classic';
+
     if (playtestMapStr) {
       try {
         const playtestMap = JSON.parse(playtestMapStr);
         this.dungeonManager.setMapData(playtestMap);
         this.isPlaytesting = true;
-        console.log("Playtest sandbox: custom level map loaded.");
+        activeTheme = localStorage.getItem('gauntlet_playtest_theme') || 'classic';
+        console.log("Playtest sandbox: custom level map loaded. Theme: " + activeTheme);
       } catch (e) {
         console.error("Failed to parse playtest map", e);
         this.dungeonManager.setMapData(getLevelMap(this.currentLevel));
+        activeTheme = getLevelTheme(this.currentLevel);
       }
     } else {
       this.dungeonManager.setMapData(getLevelMap(this.currentLevel));
+      activeTheme = getLevelTheme(this.currentLevel);
     }
+    
+    // Apply theme parameters to Three.js environment and DungeonManager materials
+    this.applyTheme(activeTheme);
+    this.dungeonManager.setTheme(activeTheme);
     this.dungeonManager.buildDungeon();
 
     // 2. Instantiate Hero
@@ -180,6 +189,11 @@ export class GameLoop {
     this.idleExitsOpened = false;
     this.deathSpawnTimer = 0;
     this.thiefSpawnTimer = 0;
+
+    // Set theme and apply tints
+    const nextTheme = getLevelTheme(this.currentLevel);
+    this.applyTheme(nextTheme);
+    this.dungeonManager.setTheme(nextTheme);
 
     // Set new map grid
     this.dungeonManager.setMapData(getLevelMap(this.currentLevel));
@@ -260,13 +274,42 @@ export class GameLoop {
       if (this.hero && !this.hero.isDead && !enemy.isDead) {
         const dist = enemy.group.position.distanceTo(playerPos);
         if (dist < 0.9) {
-          const dmg = enemy.damageRate * (dt / 1000);
-          this.hero.takeDamage(dmg);
-          
-          // If Death drains health, track it to check self-vanishing triggers
-          if (enemy.isDeathClass) {
-            enemy.drainedHealth += dmg;
+          if (this.hero.specialActive && this.hero.classType === 'valkyrie') {
+            // Valkyrie Aegis thorns reflection damage to the enemy
+            enemy.takeDamage(120 * (dt / 1000));
+          } else {
+            const dmg = enemy.damageRate * (dt / 1000);
+            this.hero.takeDamage(dmg);
+            
+            // If Death drains health, track it to check self-vanishing triggers
+            if (enemy.isDeathClass) {
+              enemy.drainedHealth += dmg;
+            }
           }
+        }
+      }
+
+      // Warrior Iron Spin AoE damage & knockback
+      if (this.hero && this.hero.specialActive && this.hero.classType === 'warrior' && !enemy.isDead) {
+        const dist = enemy.group.position.distanceTo(playerPos);
+        const maxRange = 0.5 + (this.hero.specialActiveTimer / this.hero.specialDuration) * 5.5;
+        if (dist < maxRange) {
+          enemy.takeDamage(150 * (dt / 1000));
+          
+          // Apply physical knockback velocity away from player
+          const kbDir = new THREE.Vector3().subVectors(enemy.group.position, playerPos);
+          kbDir.y = 0;
+          kbDir.normalize();
+          enemy.body.velocity.x = kbDir.x * 9.5;
+          enemy.body.velocity.z = kbDir.z * 9.5;
+        }
+      }
+
+      // Elf Dash Rush path damage
+      if (this.hero && this.hero.specialActive && this.hero.classType === 'elf' && !enemy.isDead) {
+        const dist = enemy.group.position.distanceTo(playerPos);
+        if (dist < 1.3) {
+          enemy.takeDamage(220 * (dt / 1000));
         }
       }
 
@@ -274,9 +317,10 @@ export class GameLoop {
         enemy.destroy();
         this.enemies.splice(i, 1);
         if (this.hero) {
-          // Death rewards 200 points, Thief rewards 500 points, Ghost 10 points
-          const reward = enemy.isDeathClass ? 200 : enemy.isThiefClass ? 500 : 10;
-          this.hero.score += reward;
+          this.hero.addCombo();
+          const baseReward = enemy.isDeathClass ? 200 : enemy.isThiefClass ? 500 : 10;
+          const comboMult = this.hero.getScoreMultiplier();
+          this.hero.score += Math.round(baseReward * comboMult);
 
           // If Thief is killed before escaping, recover the item immediately!
           if (enemy.isThiefClass && enemy.hasStolen && enemy.stolenItem) {
@@ -317,7 +361,12 @@ export class GameLoop {
         keys: this.hero.keys,
         potions: this.hero.potions,
         score: this.hero.score,
-        level: this.currentLevel
+        level: this.currentLevel,
+        specialTimer: this.hero.specialTimer,
+        specialCooldown: this.hero.specialCooldown,
+        specialActive: this.hero.specialActive,
+        comboCount: this.hero.comboCount,
+        comboMult: this.hero.getScoreMultiplier()
       });
     }
 
@@ -540,5 +589,33 @@ export class GameLoop {
     if (this.renderer && this.renderer.domElement.parentNode) {
       this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
     }
+  }
+
+  applyTheme(theme) {
+    this.activeTheme = theme;
+    
+    const themeConfigs = {
+      classic: { bg: 0x05050a, fog: 0x05050a, fogDensity: 0.05, light: 0x223355 },
+      lava: { bg: 0x150505, fog: 0x150505, fogDensity: 0.06, light: 0xff4422 },
+      ice: { bg: 0x050f15, fog: 0x050f15, fogDensity: 0.045, light: 0x66aacc },
+      toxic: { bg: 0x051505, fog: 0x051505, fogDensity: 0.055, light: 0x33aa44 }
+    };
+    
+    const config = themeConfigs[theme] || themeConfigs['classic'];
+    
+    // Update scene properties
+    this.scene.background = new THREE.Color(config.bg);
+    
+    if (this.scene.fog) {
+      this.scene.fog.color = new THREE.Color(config.fog);
+      this.scene.fog.density = config.fogDensity;
+    }
+    
+    // Find directional light and update color
+    this.scene.children.forEach(child => {
+      if (child.isDirectionalLight) {
+        child.color = new THREE.Color(config.light);
+      }
+    });
   }
 }

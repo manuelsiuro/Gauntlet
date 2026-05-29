@@ -565,3 +565,31 @@ body, html {
     min-width: 80px;
   }
 }
+
+/* Special & Combo HUD styles */
+#hud-special-val.specialReadyPulse {
+  display: inline-block;
+  color: var(--neon-gold);
+  text-shadow: 0 0 8px var(--neon-gold);
+  animation: specialReadyPulse 1.2s infinite alternate;
+}
+
+#hud-special-val.cooldown {
+  color: #888899;
+}
+
+#hud-combo-val.pulse-high {
+  display: inline-block;
+  animation: comboPulse 0.4s infinite alternate;
+  text-shadow: 0 0 10px var(--neon-blue);
+}
+
+@keyframes specialReadyPulse {
+  0% { opacity: 0.8; }
+  100% { opacity: 1.0; text-shadow: 0 0 12px var(--neon-gold); }
+}
+
+@keyframes comboPulse {
+  0% { transform: scale(1.0); }
+  100% { transform: scale(1.15); }
+}

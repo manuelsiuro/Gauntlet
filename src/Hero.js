@@ -33,6 +33,20 @@ export class Hero {
     this.healthDrainTimer = 0;
     this.lowHealthVoiceTimer = 0;
 
+    // Special Ability properties
+    this.specialCooldown = 8000; // 8 seconds cooldown
+    this.specialTimer = 8000; // Ready at start
+    this.specialActive = false;
+    this.specialActiveTimer = 0;
+    this.specialDuration = this.classType === 'warrior' ? 1000 :
+                           this.classType === 'wizard' ? 4500 :
+                           this.classType === 'valkyrie' ? 3500 : 400; // Elf dash is quick
+    
+    // Combo multiplier system
+    this.comboCount = 0;
+    this.comboTimer = 0;
+    this.comboCooldown = 3000; // 3 seconds chain duration
+
     // Create 3D group container
     this.group = new THREE.Group();
     this.group.position.copy(startPos);
@@ -188,6 +202,42 @@ export class Hero {
         this.flashRedUI();
       }
     }
+
+    // 3. Special Ability timers update
+    if (this.specialTimer < this.specialCooldown) {
+      this.specialTimer += dt;
+    }
+
+    if (this.specialActive) {
+      this.specialActiveTimer += dt;
+      
+      // Warrior spin animation scaling
+      if (this.classType === 'warrior' && this.spinRing) {
+        const progress = this.specialActiveTimer / this.specialDuration;
+        const size = 0.5 + progress * 5.5; // Grows up to 6x scale
+        this.spinRing.scale.set(size, size, 1.0);
+        this.spinRing.material.opacity = 0.8 * (1.0 - progress);
+      }
+      
+      // Elf dash speed injection
+      if (this.classType === 'elf' && this.dashDir) {
+        this.body.velocity.x = this.dashDir.x * this.baseSpeed * 3.2;
+        this.body.velocity.z = this.dashDir.z * this.baseSpeed * 3.2;
+        this.createDashTrailParticles();
+      }
+
+      if (this.specialActiveTimer >= this.specialDuration) {
+        this.endSpecialAbility();
+      }
+    }
+
+    // 4. Combo Multiplier timer
+    if (this.comboTimer > 0) {
+      this.comboTimer -= dt;
+      if (this.comboTimer <= 0) {
+        this.comboCount = 0;
+      }
+    }
   }
 
   /**
@@ -195,6 +245,20 @@ export class Hero {
    */
   takeDamage(amount) {
     if (this.isDead) return;
+    
+    // Valkyrie Aegis invincibility check
+    if (this.specialActive && this.classType === 'valkyrie') {
+      this.sprite.material.color.setHex(0xffffff);
+      setTimeout(() => {
+        if (this.sprite && this.specialActive) this.sprite.material.color.setHex(0xffcc00);
+      }, 100);
+      return;
+    }
+
+    // Elf Dash invincibility check
+    if (this.specialActive && this.classType === 'elf') {
+      return;
+    }
     
     // Apply defense mitigation
     const mitigated = Math.max(1, Math.round(amount * (1.0 - this.defense)));
@@ -326,7 +390,108 @@ export class Hero {
     window.dispatchEvent(event);
   }
 
+  useSpecial(projectileManager, scene) {
+    if (this.isDead || this.specialTimer < this.specialCooldown || this.specialActive) return;
+
+    this.specialActive = true;
+    this.specialActiveTimer = 0;
+    this.specialTimer = 0;
+
+    soundManager.speak(`${this.className} special ability activated!`, true);
+    soundManager.playSpawnerDestroy(); // Activation thump sound
+
+    if (this.classType === 'warrior') {
+      // Create Golden ring shockwave mesh
+      const ringGeo = new THREE.RingGeometry(0.1, 1.0, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xffcc00,
+        transparent: true,
+        opacity: 0.8,
+        side: THREE.DoubleSide
+      });
+      this.spinRing = new THREE.Mesh(ringGeo, ringMat);
+      this.spinRing.rotation.x = -Math.PI / 2;
+      this.spinRing.position.y = 0.05;
+      this.group.add(this.spinRing);
+
+    } else if (this.classType === 'wizard') {
+      // Wizard blue shield tint visual
+      this.sprite.material.color.setHex(0x33ccff);
+
+    } else if (this.classType === 'valkyrie') {
+      // Valkyrie invincibility golden visual
+      this.sprite.material.color.setHex(0xffcc00);
+      this.ringMesh.material.color.setHex(0xffcc00);
+      this.ringMesh.material.opacity = 0.9;
+
+    } else if (this.classType === 'elf') {
+      // Save dash direction from body velocity
+      const vel = new THREE.Vector3(this.body.velocity.x, 0, this.body.velocity.z);
+      if (vel.lengthSq() > 0.01) {
+        vel.normalize();
+        this.dashDir = vel;
+      } else {
+        // Dash in direction facing
+        this.dashDir = new THREE.Vector3(this.sprite.scale.x > 0 ? 1 : -1, 0, 0);
+      }
+    }
+  }
+
+  endSpecialAbility() {
+    this.specialActive = false;
+    this.specialActiveTimer = 0;
+
+    this.sprite.material.color.setHex(0xffffff);
+
+    if (this.classType === 'warrior' && this.spinRing) {
+      this.group.remove(this.spinRing);
+      this.spinRing = null;
+    } else if (this.classType === 'valkyrie') {
+      const origColor = this.classType === 'warrior' ? 0xff3366 :
+                         this.classType === 'wizard' ? 0x33ccff :
+                         this.classType === 'valkyrie' ? 0xffcc00 : 0x33ff66;
+      this.ringMesh.material.color.setHex(origColor);
+      this.ringMesh.material.opacity = 0.4;
+    }
+  }
+
+  createDashTrailParticles() {
+    const geo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x33ff66, transparent: true, opacity: 0.8 });
+    const trail = new THREE.Mesh(geo, mat);
+    
+    // Position offset behind player
+    trail.position.copy(this.group.position);
+    trail.position.y += 0.4 + (Math.random() - 0.5) * 0.2;
+    this.scene.add(trail);
+
+    const startTime = Date.now();
+    const pAnim = () => {
+      const elapsed = Date.now() - startTime;
+      if (elapsed > 350) {
+        this.scene.remove(trail);
+      } else {
+        trail.scale.multiplyScalar(0.92);
+        requestAnimationFrame(pAnim);
+      }
+    };
+    pAnim();
+  }
+
+  addCombo() {
+    this.comboCount++;
+    this.comboTimer = this.comboCooldown;
+  }
+
+  getScoreMultiplier() {
+    return Math.min(5.0, 1.0 + Math.floor(this.comboCount / 5) * 0.5);
+  }
+
   destroy() {
+    if (this.spinRing) {
+      this.group.remove(this.spinRing);
+      this.spinRing = null;
+    }
     this.scene.remove(this.group);
     this.physicsWorld.removeBody(this.body);
   }

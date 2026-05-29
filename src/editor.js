@@ -164,16 +164,23 @@ function initLevelEditor() {
     }
   });
 
+  document.getElementById('btn-generate-maze').addEventListener('click', () => {
+    if (confirm("This will clear the grid and generate a random playable maze. Continue?")) {
+      generateRandomMaze();
+    }
+  });
+
   // Export JSON
   document.getElementById('btn-export-json').addEventListener('click', () => {
     const levelName = document.getElementById('meta-level-name').value || "Custom Dungeon";
     const levelNum = parseInt(document.getElementById('meta-level-num').value) || 1;
-    const spawnerSpeed = parseFloat(document.getElementById('meta-spawner-speed').value) || 1.0;
+    const theme = document.getElementById('meta-theme').value || "classic";
 
     const data = {
       name: levelName,
       number: levelNum,
       spawnerSpeed: spawnerSpeed,
+      theme: theme,
       cols: gridCols,
       rows: gridRows,
       grid: mapGrid
@@ -202,6 +209,10 @@ function initLevelEditor() {
           
           document.getElementById('grid-cols').value = data.cols;
           document.getElementById('grid-rows').value = data.rows;
+          
+          if (data.theme) {
+            document.getElementById('meta-theme').value = data.theme;
+          }
           
           gridCols = data.cols;
           gridRows = data.rows;
@@ -255,6 +266,9 @@ function initLevelEditor() {
     
     const playtestClass = document.getElementById('playtest-class').value;
     localStorage.setItem('gauntlet_playtest_class', playtestClass);
+
+    const theme = document.getElementById('meta-theme').value || 'classic';
+    localStorage.setItem('gauntlet_playtest_theme', theme);
 
     // Redirect to main game with playtest flag in query
     window.location.href = 'index.html?playtest=true';
@@ -835,4 +849,114 @@ function copyTextureGeneratorCode() {
   navigator.clipboard.writeText(code).then(() => {
     alert("Texture code segment copied to clipboard!");
   });
+}
+
+function generateRandomMaze() {
+  // Clear the grid to walls
+  for (let r = 0; r < gridRows; r++) {
+    const row = [];
+    for (let c = 0; c < gridCols; c++) {
+      mapGrid[r][c] = 1; // Start all wall
+    }
+  }
+
+  // Backtracking DFS to carve out floor paths (cells are carved in 2x2 steps)
+  const stack = [];
+  const startR = 2;
+  const startC = 2;
+  mapGrid[startR][startC] = 0;
+  stack.push([startR, startC]);
+
+  while (stack.length > 0) {
+    const [r, c] = stack[stack.length - 1];
+    
+    // Find unvisited neighbors in distance 2
+    const neighbors = [];
+    const dirs = [
+      [-2, 0], [2, 0], [0, -2], [0, 2]
+    ];
+    
+    dirs.forEach(([dr, dc]) => {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr > 0 && nr < gridRows - 1 && nc > 0 && nc < gridCols - 1) {
+        if (mapGrid[nr][nc] === 1) {
+          neighbors.push([nr, nc, dr, dc]);
+        }
+      }
+    });
+
+    if (neighbors.length > 0) {
+      // Pick random neighbor
+      const [nr, nc, dr, dc] = neighbors[Math.floor(Math.random() * neighbors.length)];
+      // Carve floor through the wall
+      mapGrid[r + dr / 2][c + dc / 2] = 0;
+      mapGrid[nr][nc] = 0;
+      stack.push([nr, nc]);
+    } else {
+      stack.pop();
+    }
+  }
+
+  // Ensure start and exit exist
+  mapGrid[2][2] = 3; // Hero start
+  
+  // Make exit area open and place Exit portal
+  const exitR = gridRows - 3;
+  const exitC = gridCols - 3;
+  mapGrid[exitR][exitC] = 4; // Exit
+  mapGrid[exitR][exitC - 1] = 0;
+  mapGrid[exitR - 1][exitC] = 0;
+  mapGrid[exitR - 1][exitC - 1] = 0;
+
+  // Let's populate the carved paths with spawners and items
+  for (let r = 1; r < gridRows - 1; r++) {
+    for (let c = 1; c < gridCols - 1; c++) {
+      if (mapGrid[r][c] === 0) {
+        // Don't place next to start
+        if (Math.abs(r - 2) + Math.abs(c - 2) < 3) continue;
+        // Don't place next to exit
+        if (Math.abs(r - exitR) + Math.abs(c - exitC) < 3) continue;
+
+        const rand = Math.random();
+        if (rand < 0.05) {
+          // Place a spawner. Randomize spawner types: Ghost (2, 12, 13), Grunt (22-24), Demon (25-27), Sorcerer (28-30)
+          const spawnerTypes = [2, 12, 13, 22, 23, 24, 25, 26, 27, 28, 29, 30];
+          mapGrid[r][c] = spawnerTypes[Math.floor(Math.random() * spawnerTypes.length)];
+        } else if (rand < 0.10) {
+          // Place random collectible
+          const items = [5, 6, 7, 10, 9, 11, 16, 17, 19, 20, 21];
+          mapGrid[r][c] = items[Math.floor(Math.random() * items.length)];
+        } else if (rand < 0.14) {
+          // Put a locked door
+          mapGrid[r][c] = 8;
+        }
+      }
+    }
+  }
+
+  // Ensure at least one key is spawned if doors exist
+  let hasKey = false;
+  let hasDoor = false;
+  for (let r = 1; r < gridRows - 1; r++) {
+    for (let c = 1; c < gridCols - 1; c++) {
+      if (mapGrid[r][c] === 6) hasKey = true;
+      if (mapGrid[r][c] === 8) hasDoor = true;
+    }
+  }
+  if (hasDoor && !hasKey) {
+    // Force spawn key in a random floor cell
+    let attempts = 0;
+    while (attempts < 100) {
+      const r = Math.floor(Math.random() * (gridRows - 2)) + 1;
+      const c = Math.floor(Math.random() * (gridCols - 2)) + 1;
+      if (mapGrid[r][c] === 0) {
+        mapGrid[r][c] = 6;
+        break;
+      }
+      attempts++;
+    }
+  }
+
+  renderLevelGrid();
 }

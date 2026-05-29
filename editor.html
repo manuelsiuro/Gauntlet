@@ -438,6 +438,16 @@
           <label for="meta-level-name">Level Name</label>
           <input type="text" id="meta-level-name" value="Custom Dungeon" />
         </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label for="meta-theme">Dungeon Theme</label>
+          <select id="meta-theme">
+            <option value="classic">Classic Crypt (Blue)</option>
+            <option value="lava">Lava Forge (Red)</option>
+            <option value="ice">Ice Citadel (Cyan)</option>
+            <option value="toxic">Toxic Gardens (Green)</option>
+          </select>
+        </div>
         
         <div class="form-row">
           <div class="form-group" style="width: 50%;">
@@ -503,6 +513,7 @@
         </div>
 
         <button id="btn-load-preset" class="editor-btn btn-sec">LOAD PRESET</button>
+        <button id="btn-generate-maze" class="editor-btn btn-sec" style="background: rgba(51, 204, 255, 0.15); border-color: rgb(51, 204, 255); color: #c0f0ff;">GENERATE RANDOM MAZE</button>
         <button id="btn-clear-map" class="editor-btn btn-sec">CLEAR MAP</button>
 
         <div style="border-top: 1px solid rgba(147, 51, 234, 0.15); margin: 5px 0;"></div>

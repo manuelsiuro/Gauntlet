@@ -178,8 +178,12 @@ export class Enemy {
         const runAwayDir = new THREE.Vector3().subVectors(this.group.position, playerPos);
         runAwayDir.y = 0;
         runAwayDir.normalize();
-        this.body.velocity.x = runAwayDir.x * this.speed;
-        this.body.velocity.z = runAwayDir.z * this.speed;
+        let actualThiefSpeed = this.speed;
+        if (playerObject && playerObject.specialActive && playerObject.classType === 'wizard') {
+          actualThiefSpeed *= 0.25;
+        }
+        this.body.velocity.x = runAwayDir.x * actualThiefSpeed;
+        this.body.velocity.z = runAwayDir.z * actualThiefSpeed;
         return;
       }
     }
@@ -190,9 +194,11 @@ export class Enemy {
     
     const distance = direction.length();
     
-    // Determine speed (Demons slow down to aim fireballs)
+    // Determine speed (Demons slow down to aim fireballs, Time Warp slows everything)
     let actualSpeed = this.speed;
-    if (this.isDemonClass && distance <= 12.0 && distance >= 3.5) {
+    if (playerObject && playerObject.specialActive && playerObject.classType === 'wizard') {
+      actualSpeed *= 0.25; // Slow-mo warp!
+    } else if (this.isDemonClass && distance <= 12.0 && distance >= 3.5) {
       actualSpeed = this.speed * 0.25; // Slow down to fire
     }
     

@@ -247,3 +247,17 @@ export function getLevelMap(level) {
 
   return mapGrid;
 }
+
+/**
+ * Returns the designated visual theme name for the campaign level.
+ * @param {number} level
+ */
+export function getLevelTheme(level) {
+  const lvl = Math.max(1, Math.min(30, level));
+  if (lvl <= 5) return 'classic';
+  if (lvl <= 10) return 'toxic';
+  if (lvl <= 15) return 'ice';
+  if (lvl <= 20) return 'lava';
+  if (lvl <= 25) return 'toxic';
+  return 'lava';
+}

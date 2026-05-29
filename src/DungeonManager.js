@@ -55,6 +55,7 @@ export class DungeonManager {
       [1, 3, 0, 4, 1],
       [1, 1, 1, 1, 1]
     ];
+    this.theme = 'classic';
   }
 
   /**
@@ -63,6 +64,14 @@ export class DungeonManager {
    */
   setMapData(mapData) {
     this.mapData = mapData;
+  }
+
+  /**
+   * Sets the active level theme
+   * @param {string} theme
+   */
+  setTheme(theme) {
+    this.theme = theme;
   }
 
   /**
@@ -84,10 +93,21 @@ export class DungeonManager {
   buildDungeon() {
     const wallIndices = [];
     const wallTexture = textureGenerator.getWallTexture();
+    
+    // Choose colors based on active theme
+    const themeColors = {
+      classic: { floor: 0xffffff, wall: 0xffffff },
+      lava: { floor: 0xff8866, wall: 0xff5533 },
+      ice: { floor: 0x88ccff, wall: 0xaaddff },
+      toxic: { floor: 0x88ff88, wall: 0x66dd66 }
+    };
+    const colors = themeColors[this.theme] || themeColors['classic'];
+
     const wallMat = new THREE.MeshStandardMaterial({
       map: wallTexture,
       roughness: 0.8,
-      metalness: 0.2
+      metalness: 0.2,
+      color: colors.wall
     });
     
     // Setup ground floor plane
@@ -100,7 +120,8 @@ export class DungeonManager {
     const floorMat = new THREE.MeshStandardMaterial({
       map: floorTex,
       roughness: 0.9,
-      metalness: 0.1
+      metalness: 0.1,
+      color: colors.floor
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
     floorMesh.rotation.x = -Math.PI / 2;
@@ -402,7 +423,14 @@ export class DungeonManager {
         sprite.position.copy(torchPos);
         this.scene.add(sprite);
 
-        const light = new THREE.PointLight(0xffaa44, 1.8, 4.5);
+        const torchColors = {
+          classic: 0xffaa44,
+          lava: 0xff5500,
+          ice: 0x33ccff,
+          toxic: 0x33ff55
+        };
+        const torchColor = torchColors[this.theme] || torchColors['classic'];
+        const light = new THREE.PointLight(torchColor, 1.8, 4.5);
         light.position.set(torchPos.x + n.dx * 0.1, 1.4, torchPos.z + n.dz * 0.1);
         this.scene.add(light);
 

@@ -15,6 +15,9 @@ const hudClassVal = document.getElementById('hud-class-val');
 const hudHealthVal = document.getElementById('hud-health-val');
 const hudKeysVal = document.getElementById('hud-keys-val');
 const hudPotionsVal = document.getElementById('hud-potions-val');
+const hudSpecialVal = document.getElementById('hud-special-val');
+const hudComboVal = document.getElementById('hud-combo-val');
+const hudComboContainer = document.getElementById('hud-combo-container');
 const hudScoreVal = document.getElementById('hud-score-val');
 
 // End screen elements
@@ -44,6 +47,33 @@ function updateHud(state) {
   if (hudKeysVal) hudKeysVal.textContent = state.keys.toString();
   if (hudPotionsVal) hudPotionsVal.textContent = state.potions.toString();
   if (hudScoreVal) hudScoreVal.textContent = state.score.toString().padStart(5, '0');
+
+  // Update Special Ability cooldown HUD text
+  if (hudSpecialVal) {
+    if (state.specialActive) {
+      hudSpecialVal.textContent = "ACTIVE";
+      hudSpecialVal.className = "hud-value pixel-text text-yellow blink";
+    } else if (state.specialCooldown > 0) {
+      hudSpecialVal.textContent = Math.ceil(state.specialCooldown / 1000) + "S";
+      hudSpecialVal.className = "hud-value pixel-text text-red";
+    } else {
+      hudSpecialVal.textContent = "READY";
+      hudSpecialVal.className = "hud-value pixel-text text-gold specialReadyPulse";
+    }
+  }
+
+  // Update Combo HUD element
+  if (hudComboContainer && hudComboVal) {
+    if (state.comboCount > 0) {
+      hudComboContainer.classList.remove('hidden');
+      hudComboVal.textContent = "x" + state.comboMult.toFixed(1);
+      // Give a dynamic pop/pulse class
+      hudComboVal.classList.add('pulse-high');
+    } else {
+      hudComboContainer.classList.add('hidden');
+      hudComboVal.classList.remove('pulse-high');
+    }
+  }
 
   // Pulse health red if critically low
   if (state.health < 500) {
