@@ -12,7 +12,7 @@ import { soundManager } from './SoundManager';
  * Grid mapping:
  * 0 = Floor
  * 1 = Wall
- * 2 = Spawner (Level 1)
+ * 2 = Ghost Spawner (Level 1)
  * 3 = Player Start
  * 4 = Exit Portal
  * 5 = Destructible Food (+400 Health)
@@ -22,9 +22,12 @@ import { soundManager } from './SoundManager';
  * 9 = Poison (Green food, -200 Health)
  * 10 = Treasure Chest (+150 Score)
  * 11 = Trap Plate (Opens hidden walls)
- * 12 = Spawner (Level 2)
- * 13 = Spawner (Level 3)
+ * 12 = Ghost Spawner (Level 2)
+ * 13 = Ghost Spawner (Level 3)
  * 14 = Exit Portal (Level Skip - skips 2 levels)
+ * 22-24 = Grunt Spawner (Levels 1-3)
+ * 25-27 = Demon Spawner (Levels 1-3)
+ * 28-30 = Sorcerer Spawner (Levels 1-3)
  */
 export class DungeonManager {
   constructor(scene, physicsWorld) {
@@ -43,6 +46,8 @@ export class DungeonManager {
     
     this.exitPortal = null;
     this.playerStart = new THREE.Vector3(0, 0.5, 0);
+    this.torches = []; // Array of { sprite, light, baseIntensity, timeOffset }
+    this.decals = []; // Array of decal meshes
 
     // Initial dummy map data. Main level maps will load via DungeonMaps.getLevelMap()
     this.mapData = [
@@ -121,7 +126,7 @@ export class DungeonManager {
         const type = this.mapData[r][c];
         const worldPos = this.gridToWorld(c, r);
 
-        if (type === 1) {
+        if (type === 1 || type === 15 || type === 18) {
           // Wall
           wallIndices.push(worldPos);
           
@@ -137,13 +142,31 @@ export class DungeonManager {
           this.physicsWorld.addBody(wallBody);
           wallBodies.push(wallBody);
 
-        } else if (type === 2 || type === 12 || type === 13) {
-          // Spawners: 2 = Level 1, 12 = Level 2, 13 = Level 3
+          if (type === 15) {
+            this.createWallTorch(c, r, worldPos);
+          } else if (type === 18) {
+            this.createWallBanner(c, r, worldPos);
+          }
+
+        } else if (type === 2 || type === 12 || type === 13 || (type >= 22 && type <= 30)) {
+          // Spawners: Ghost (2, 12, 13), Grunt (22-24), Demon (25-27), Sorcerer (28-30)
           let lvl = 1;
-          if (type === 12) lvl = 2;
-          if (type === 13) lvl = 3;
+          let enemyType = 'ghost';
           
-          const spawner = new Spawner(this.scene, this.physicsWorld, worldPos, lvl);
+          if (type === 2) { lvl = 1; enemyType = 'ghost'; }
+          else if (type === 12) { lvl = 2; enemyType = 'ghost'; }
+          else if (type === 13) { lvl = 3; enemyType = 'ghost'; }
+          else if (type === 22) { lvl = 1; enemyType = 'grunt'; }
+          else if (type === 23) { lvl = 2; enemyType = 'grunt'; }
+          else if (type === 24) { lvl = 3; enemyType = 'grunt'; }
+          else if (type === 25) { lvl = 1; enemyType = 'demon'; }
+          else if (type === 26) { lvl = 2; enemyType = 'demon'; }
+          else if (type === 27) { lvl = 3; enemyType = 'demon'; }
+          else if (type === 28) { lvl = 1; enemyType = 'sorcerer'; }
+          else if (type === 29) { lvl = 2; enemyType = 'sorcerer'; }
+          else if (type === 30) { lvl = 3; enemyType = 'sorcerer'; }
+          
+          const spawner = new Spawner(this.scene, this.physicsWorld, worldPos, lvl, enemyType);
           this.spawners.push(spawner);
 
         } else if (type === 3) {
@@ -166,6 +189,21 @@ export class DungeonManager {
         } else if (type === 11) {
           // Trap Plate
           this.spawnTrap(worldPos);
+        } else if (type === 16) {
+          // Floor Blood
+          this.spawnFloorDecal('blood', worldPos);
+        } else if (type === 17) {
+          // Floor Skulls
+          this.spawnFloorDecal('skulls', worldPos);
+        } else if (type === 19) {
+          // Floor Grate
+          this.spawnFloorDecal('grate', worldPos);
+        } else if (type === 20) {
+          // Floor Cobweb
+          this.spawnFloorDecal('web', worldPos);
+        } else if (type === 21) {
+          // Floor Bones
+          this.spawnFloorDecal('bones', worldPos);
         }
       }
     }
@@ -328,6 +366,123 @@ export class DungeonManager {
     });
   }
 
+  isTileWalkable(col, row) {
+    if (row < 0 || row >= this.mapData.length || col < 0 || col >= this.mapData[0].length) {
+      return false;
+    }
+    const type = this.mapData[row][col];
+    return type !== 1 && type !== 15 && type !== 18 && type !== 8;
+  }
+
+  createWallTorch(col, row, worldPos) {
+    const halfSize = this.gridSize / 2;
+    const offset = halfSize + 0.02;
+    const neighbors = [
+      { dCol: -1, dRow: 0, dx: -offset, dz: 0 },
+      { dCol: 1, dRow: 0, dx: offset, dz: 0 },
+      { dCol: 0, dRow: -1, dx: 0, dz: -offset },
+      { dCol: 0, dRow: 1, dx: 0, dz: offset }
+    ];
+
+    neighbors.forEach(n => {
+      if (this.isTileWalkable(col + n.dCol, row + n.dRow)) {
+        const torchTex = textureGenerator.getTorchTexture();
+        const mat = new THREE.SpriteMaterial({
+          map: torchTex,
+          transparent: true
+        });
+        const sprite = new THREE.Sprite(mat);
+        sprite.scale.set(0.65, 0.65, 1.0);
+        
+        const torchPos = new THREE.Vector3(
+          worldPos.x + n.dx,
+          1.2,
+          worldPos.z + n.dz
+        );
+        sprite.position.copy(torchPos);
+        this.scene.add(sprite);
+
+        const light = new THREE.PointLight(0xffaa44, 1.8, 4.5);
+        light.position.set(torchPos.x + n.dx * 0.1, 1.4, torchPos.z + n.dz * 0.1);
+        this.scene.add(light);
+
+        this.torches.push({
+          sprite: sprite,
+          light: light,
+          baseIntensity: 1.8,
+          timeOffset: Math.random() * 100
+        });
+      }
+    });
+  }
+
+  createWallBanner(col, row, worldPos) {
+    const halfSize = this.gridSize / 2;
+    const offset = halfSize + 0.015;
+    const neighbors = [
+      { dCol: -1, dRow: 0, dx: -offset, dz: 0, rotY: -Math.PI / 2 },
+      { dCol: 1, dRow: 0, dx: offset, dz: 0, rotY: Math.PI / 2 },
+      { dCol: 0, dRow: -1, dx: 0, dz: -offset, rotY: Math.PI },
+      { dCol: 0, dRow: 1, dx: 0, dz: offset, rotY: 0 }
+    ];
+
+    neighbors.forEach(n => {
+      if (this.isTileWalkable(col + n.dCol, row + n.dRow)) {
+        const bannerTex = textureGenerator.getBannerTexture();
+        const bannerGeo = new THREE.PlaneGeometry(1.0, 1.5);
+        const bannerMat = new THREE.MeshStandardMaterial({
+          map: bannerTex,
+          transparent: true,
+          side: THREE.DoubleSide,
+          roughness: 0.8,
+          metalness: 0.1
+        });
+        const mesh = new THREE.Mesh(bannerGeo, bannerMat);
+        mesh.position.set(
+          worldPos.x + n.dx,
+          1.15,
+          worldPos.z + n.dz
+        );
+        mesh.rotation.y = n.rotY;
+        this.scene.add(mesh);
+        this.decals.push(mesh);
+      }
+    });
+  }
+
+  spawnFloorDecal(assetName, position) {
+    const size = 1.2;
+    const geo = new THREE.PlaneGeometry(size, size);
+    
+    let texture;
+    if (assetName === 'blood') {
+      texture = textureGenerator.getBloodTexture();
+    } else if (assetName === 'skulls') {
+      texture = textureGenerator.getSkullsTexture();
+    } else if (assetName === 'grate') {
+      texture = textureGenerator.getGrateTexture();
+    } else if (assetName === 'web') {
+      texture = textureGenerator.getWebTexture();
+    } else if (assetName === 'bones') {
+      texture = textureGenerator.getBonesTexture();
+    }
+    
+    const mat = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+    
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.rotation.z = Math.random() * Math.PI * 2;
+    mesh.position.set(position.x, 0.015, position.z);
+    
+    this.scene.add(mesh);
+    this.decals.push(mesh);
+  }
+
   /**
    * Removes a locked door
    */
@@ -487,6 +642,13 @@ export class DungeonManager {
     if (this.exitPortal) {
       this.exitPortal.sprite.material.rotation = time * 2;
     }
+
+    // 4. Torch flickering animation
+    this.torches.forEach(t => {
+      t.light.intensity = t.baseIntensity * (0.8 + Math.sin(time * 12 + t.timeOffset) * 0.15 + (Math.random() - 0.5) * 0.05);
+      const scaleWobble = 0.65 * (0.92 + Math.sin(time * 18 + t.timeOffset) * 0.08);
+      t.sprite.scale.set(scaleWobble, scaleWobble, 1.0);
+    });
   }
 
   /**
@@ -522,5 +684,14 @@ export class DungeonManager {
 
     this.exitPortal = null;
     this.allWallsAreExits = false;
+
+    this.decals.forEach(d => this.scene.remove(d));
+    this.decals = [];
+
+    this.torches.forEach(t => {
+      this.scene.remove(t.sprite);
+      this.scene.remove(t.light);
+    });
+    this.torches = [];
   }
 }

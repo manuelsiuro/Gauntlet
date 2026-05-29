@@ -108,7 +108,7 @@ export class Hero {
       position: new CANNON.Vec3(startPos.x, startPos.y, startPos.z),
       fixedRotation: true, // Prevent rolling around like a ball
       collisionFilterGroup: COLLISION_GROUPS.PLAYER,
-      collisionFilterMask: COLLISION_GROUPS.WALL | COLLISION_GROUPS.SPAWNER | COLLISION_GROUPS.ENEMY
+      collisionFilterMask: COLLISION_GROUPS.WALL | COLLISION_GROUPS.SPAWNER | COLLISION_GROUPS.ENEMY | COLLISION_GROUPS.ENEMY_PROJECTILE
     });
     
     // Sliders don't friction lock against walls

@@ -235,7 +235,7 @@ export class GameLoop {
     if (!this.isRunning) return;
     const playerPos = this.hero ? this.hero.group.position : new THREE.Vector3();
     this.dungeonManager.spawners.forEach(spawner => {
-      spawner.update(dt, playerPos, (pos, lvl) => this.spawnEnemy(pos, 'ghost', lvl));
+      spawner.update(dt, playerPos, (pos, type, lvl) => this.spawnEnemy(pos, type, lvl));
     });
 
     // Clean dead spawners
@@ -254,7 +254,7 @@ export class GameLoop {
       if (!this.isRunning) break;
       const enemy = this.enemies[i];
       if (!enemy) continue; // Safety guard if array was mutated
-      enemy.update(dt, playerPos, exitPortalPos, this.hero);
+      enemy.update(dt, playerPos, exitPortalPos, this.hero, this.projectileManager);
 
       // Proximity contact damage
       if (this.hero && !this.hero.isDead && !enemy.isDead) {

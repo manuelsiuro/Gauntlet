@@ -396,6 +396,258 @@ export const DEFAULT_TEXTURES = {
       'V': '#cc33ff', // Bright purple
       'X': '#ffccff'  // Center white glow
     }
+  },
+  torch: {
+    grid: [
+      "    ..ffff..    ",
+      "   .ffYYYYff.   ",
+      "  .ffYYYYYYff.  ",
+      "  .fYYWWWWYYf.  ",
+      "  .fYYWwwWYYf.  ",
+      "  .fYYWwwWYYf.  ",
+      "  .ffYWWWWYff.  ",
+      "   .ffYYYYff.   ",
+      "    ..ffff..    ",
+      "     .ssss.     ",
+      "     .ssss.     ",
+      "     .ssss.     ",
+      "      .ss.      ",
+      "      .ss.      ",
+      "      .ss.      ",
+      "      ....      "
+    ],
+    colorMap: {
+      '.': '#110500',
+      'f': '#ff3300',
+      'Y': '#ff9900',
+      'W': '#ffcc00',
+      'w': '#ffffff',
+      's': '#665544'
+    }
+  },
+  blood: {
+    grid: [
+      "                ",
+      "     ..         ",
+      "    .rr.   ..   ",
+      "   .rrrr. .r.   ",
+      "  .rrdddrr.rr.  ",
+      "  .rdddddrr.    ",
+      "   .rddddr.     ",
+      "   .rrddrr.     ",
+      "    .rrrrr.     ",
+      "     .rrr.      ",
+      "   .. .r.       ",
+      "  .r.  .        ",
+      "  ..            ",
+      "                ",
+      "                ",
+      "                "
+    ],
+    colorMap: {
+      '.': '#330000',
+      'r': '#990000',
+      'd': '#dd0808'
+    }
+  },
+  skulls: {
+    grid: [
+      "    ........    ",
+      "   .wwwwwwww.   ",
+      "  .wwwwwwwwww.  ",
+      " .wwxxwwxxwwww. ",
+      " .wwxxwwxxwwww. ",
+      " .wwwwwwwwwwww. ",
+      "  .wwwxxwwwxx.  ",
+      "   .w w w w.    ",
+      "    ........    ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                "
+    ],
+    colorMap: {
+      '.': '#222222',
+      'w': '#e5e5d8',
+      'x': '#050505'
+    }
+  },
+  banner: {
+    grid: [
+      "    ........    ",
+      "   .yyyyyyyy.   ",
+      "  .yrrrrrrrry.  ",
+      "  .yrryyyyrry.  ",
+      "  .yrryyyyrry.  ",
+      "  .yrryyyyrry.  ",
+      "  .yrryyyyrry.  ",
+      "  .yrrrrrrrry.  ",
+      "  .yrrrrrrrry.  ",
+      "  .yrrrrrrrry.  ",
+      "  .yrrrrrrrry.  ",
+      "  .yrrrrrrrry.  ",
+      "   .yrrrrrry.   ",
+      "    .yrrrry.    ",
+      "     .yrry.     ",
+      "      ....      "
+    ],
+    colorMap: {
+      '.': '#111111',
+      'y': '#ffcc00',
+      'r': '#990022'
+    }
+  },
+  grate: {
+    grid: [
+      "################",
+      "#dddddddddddddd#",
+      "#d============d#",
+      "#d#d#d#d#d#d#d#d#",
+      "#d#d#d#d#d#d#d#d#",
+      "#d============d#",
+      "#d#d#d#d#d#d#d#d#",
+      "#d#d#d#d#d#d#d#d#",
+      "#d============d#",
+      "#d#d#d#d#d#d#d#d#",
+      "#d#d#d#d#d#d#d#d#",
+      "#d============d#",
+      "#d#d#d#d#d#d#d#d#",
+      "#d#d#d#d#d#d#d#d#",
+      "#dddddddddddddd#",
+      "################"
+    ],
+    colorMap: {
+      '#': '#222222',
+      'd': '#443322',
+      '=': '#8b5a2b'
+    }
+  },
+  web: {
+    grid: [
+      "w      w      w ",
+      " w     w     w  ",
+      "  w    w    w   ",
+      "   w   w   w    ",
+      "    w  w  w     ",
+      "     w w w      ",
+      "      www       ",
+      "wwwwwwwwwwwwwwww",
+      "      www       ",
+      "     w w w      ",
+      "    w  w  w     ",
+      "   w   w   w    ",
+      "  w    w    w   ",
+      " w     w     w  ",
+      "w      w      w ",
+      "                "
+    ],
+    colorMap: {
+      'w': 'rgba(200, 200, 210, 0.45)'
+    }
+  },
+  bones: {
+    grid: [
+      "                ",
+      "    ..     ..   ",
+      "   .ww.   .ww.  ",
+      "   .w.w. .w.w.  ",
+      "    .w.www.w.   ",
+      "     .wwwww.    ",
+      "    .w.www.w.   ",
+      "   .w.w. .w.w.  ",
+      "   .ww.   .ww.  ",
+      "    ..     ..   ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                "
+    ],
+    colorMap: {
+      '.': '#333333',
+      'w': '#f3f4f6'
+    }
+  },
+  grunt: {
+    grid: [
+      "      ....      ",
+      "     .gggg.     ",
+      "    .gggggg.    ",
+      "   .ggo  ogg.   ",
+      "   .gggggggg.   ",
+      "    .ggrrgg.    ",
+      "   ..rrrrrr..   ",
+      "  .r.rrrrrr.r.  ",
+      "  .r.rrrrrr.r.  ",
+      "   .rrrrrrrr.   ",
+      "    .rrrrrr.    ",
+      "    .bb..bb.    ",
+      "    .b    b.    ",
+      "    bb    bb    "
+    ],
+    colorMap: {
+      '.': '#112200',
+      'g': '#33aa33',
+      'o': '#ff3300',
+      'r': '#995522',
+      'b': '#222222'
+    }
+  },
+  demon: {
+    grid: [
+      "    .      .    ",
+      "    ..    ..    ",
+      "   .rr.  .rr.   ",
+      "  .rrrr..rrrr.  ",
+      " .rrrrrrrrrrrr. ",
+      " .rr y  y  rrr. ",
+      " .rrrrrrrrrrrr. ",
+      "  .rrrrrrrrrr.  ",
+      "   .rrrrrrrr.   ",
+      "  .wwrrrrrrww.  ",
+      " .wwwrrrrrrwww. ",
+      " .ww.rrrrrr.ww. ",
+      "     .rrrr.     ",
+      "     .s..s.     ",
+      "     ss  ss     "
+    ],
+    colorMap: {
+      '.': '#220000',
+      'r': '#ff3300',
+      'y': '#ffcc00',
+      'w': '#550000',
+      's': '#111111'
+    }
+  },
+  sorcerer: {
+    grid: [
+      "     ......     ",
+      "    .cccccc.    ",
+      "   .ccwccwcc.   ",
+      "  .cccwccwccc.  ",
+      "  .cccssssccc.  ",
+      "   .ccoooccc.   ",
+      "   .cccssscc.   ",
+      "  .cccssssccc.  ",
+      " .ccccsssscccc. ",
+      " .ccc.ssss.ccc. ",
+      "  .c.ssssss.c.  ",
+      "     .ssss.     ",
+      "     .bb..bb.   ",
+      "     bb    bb   "
+    ],
+    colorMap: {
+      '.': '#002222',
+      'c': '#00ffff',
+      'w': '#ffffff',
+      's': '#4b0082',
+      'o': '#ffcc99',
+      'bb': '#111111'
+    }
   }
 };
 
@@ -543,6 +795,56 @@ class TextureGenerator {
 
   getExitTexture() {
     const config = this.getTextureConfig('exit');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getTorchTexture() {
+    const config = this.getTextureConfig('torch');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getBloodTexture() {
+    const config = this.getTextureConfig('blood');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getSkullsTexture() {
+    const config = this.getTextureConfig('skulls');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getBannerTexture() {
+    const config = this.getTextureConfig('banner');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getGrateTexture() {
+    const config = this.getTextureConfig('grate');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getWebTexture() {
+    const config = this.getTextureConfig('web');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getBonesTexture() {
+    const config = this.getTextureConfig('bones');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getGruntTexture() {
+    const config = this.getTextureConfig('grunt');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getDemonTexture() {
+    const config = this.getTextureConfig('demon');
+    return this.createPixelTexture(config.grid, config.colorMap);
+  }
+
+  getSorcererTexture() {
+    const config = this.getTextureConfig('sorcerer');
     return this.createPixelTexture(config.grid, config.colorMap);
   }
 

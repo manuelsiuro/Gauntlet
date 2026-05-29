@@ -16,27 +16,35 @@ export class Spawner {
    * @param {THREE.Vector3} position
    * @param {number} spawnerLvl - 1, 2, or 3
    */
-  constructor(scene, physicsWorld, position, spawnerLvl = 1) {
+  constructor(scene, physicsWorld, position, spawnerLvl = 1, enemyType = 'ghost') {
     this.scene = scene;
     this.physicsWorld = physicsWorld;
     this.position = position.clone();
     this.position.y = 1.0; // Rest on ground
     this.level = spawnerLvl;
+    this.enemyType = enemyType;
 
-    // Adjust spawner stats and emissive light colors based on level tier
+    // Adjust spawner stats based on level tier
     if (this.level === 3) {
       this.health = 180;
       this.spawnInterval = 1500; // continuous onslaught (every 1.5 seconds)
-      this.lightColor = 0xff0033; // red
     } else if (this.level === 2) {
       this.health = 120;
       this.spawnInterval = 2300; // fast (every 2.3 seconds)
-      this.lightColor = 0xff8800; // orange
     } else {
       this.health = 80;
       this.spawnInterval = 3200; // normal (every 3.2 seconds)
-      this.lightColor = 0xcc33ff; // purple
     }
+
+    const colors = {
+      ghost: { 1: 0xcc33ff, 2: 0xe879f9, 3: 0xa21caf },
+      grunt: { 1: 0xb45309, 2: 0xdc2626, 3: 0x7f1d1d },
+      demon: { 1: 0xf97316, 2: 0xef4444, 3: 0x991b1b },
+      sorcerer: { 1: 0x06b6d4, 2: 0x10b981, 3: 0x0f766e }
+    };
+    
+    const baseColors = colors[this.enemyType] || colors['ghost'];
+    this.lightColor = baseColors[this.level] || baseColors[1];
 
     this.maxHealth = this.health;
     this.spawnTimer = Math.random() * 1000; // Offset spawns slightly
@@ -54,8 +62,11 @@ export class Spawner {
     // A square pillar design
     const geo = new THREE.BoxGeometry(1.2, 2.0, 1.2);
     const tex = textureGenerator.getSpawnerTexture();
-    const emissiveHex = this.level === 3 ? 0x660000 : 
-                        this.level === 2 ? 0x552200 : 0x330033;
+    
+    // Calculate dark emissive based on lightColor
+    const c = new THREE.Color(this.lightColor);
+    c.multiplyScalar(0.2); // Dark glow matching lightColor
+    const emissiveHex = c.getHex();
 
     const mat = new THREE.MeshStandardMaterial({
       map: tex,
@@ -153,7 +164,7 @@ export class Spawner {
         const enemySpawnPos = this.position.clone().add(spawnOffset);
         enemySpawnPos.y = 0.5; // Rest on floor
         
-        spawnCallback(enemySpawnPos, this.level);
+        spawnCallback(enemySpawnPos, this.enemyType, this.level);
       }
     } else {
       this.light.intensity = 0.5; // Idle glow

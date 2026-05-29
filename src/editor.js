@@ -14,9 +14,18 @@ let isDrawingMap = false;
 const BRUSHES = {
   0: { name: 'Floor / Erase', color: '#0f0f1c', text: '' },
   1: { name: 'Solid Wall', color: '#44445c', text: 'W' },
-  2: { name: 'Spawner L1', color: '#5b21b6', text: 'S1' },
-  12: { name: 'Spawner L2', color: '#7c3aed', text: 'S2' },
-  13: { name: 'Spawner L3', color: '#a78bfa', text: 'S3' },
+  2: { name: 'Ghost Spawner L1', color: '#5b21b6', text: 'S1' },
+  12: { name: 'Ghost Spawner L2', color: '#7c3aed', text: 'S2' },
+  13: { name: 'Ghost Spawner L3', color: '#a78bfa', text: 'S3' },
+  22: { name: 'Grunt Spawner L1', color: '#991b1b', text: 'G1' },
+  23: { name: 'Grunt Spawner L2', color: '#dc2626', text: 'G2' },
+  24: { name: 'Grunt Spawner L3', color: '#f87171', text: 'G3' },
+  25: { name: 'Demon Spawner L1', color: '#c2410c', text: 'D1' },
+  26: { name: 'Demon Spawner L2', color: '#f97316', text: 'D2' },
+  27: { name: 'Demon Spawner L3', color: '#fdba74', text: 'D3' },
+  28: { name: 'Sorcerer Spawner L1', color: '#065f46', text: 'M1' },
+  29: { name: 'Sorcerer Spawner L2', color: '#0d9488', text: 'M2' },
+  30: { name: 'Sorcerer Spawner L3', color: '#2dd4bf', text: 'M3' },
   3: { name: 'Hero Start', color: '#eab308', text: 'H' },
   4: { name: 'Exit Portal', color: '#1e1b4b', text: 'X' },
   14: { name: 'Skip Exit', color: '#db2777', text: 'XS' },
@@ -26,7 +35,14 @@ const BRUSHES = {
   8: { name: 'Locked Door', color: '#78350f', text: 'D' },
   9: { name: 'Poison Food', color: '#22c55e', text: 'PS' },
   10: { name: 'Treasure Chest', color: '#ca8a04', text: 'C' },
-  11: { name: 'Trap Plate', color: '#10b981', text: 'T' }
+  11: { name: 'Trap Plate', color: '#10b981', text: 'T' },
+  15: { name: 'Wall Torch', color: '#f97316', text: 'TL' },
+  16: { name: 'Floor Blood', color: '#dc2626', text: 'BL' },
+  17: { name: 'Floor Skulls', color: '#9ca3af', text: 'SK' },
+  18: { name: 'Wall Banner', color: '#ec4899', text: 'BN' },
+  19: { name: 'Floor Grate', color: '#6b7280', text: 'GR' },
+  20: { name: 'Floor Cobweb', color: '#cbd5e1', text: 'WB' },
+  21: { name: 'Floor Bones', color: '#e5e7eb', text: 'BO' }
 };
 
 // TEXTURE EDITOR STATE

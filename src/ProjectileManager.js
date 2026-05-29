@@ -9,7 +9,8 @@ export const COLLISION_GROUPS = {
   ENEMY: 2,
   WALL: 4,
   SPAWNER: 8,
-  PROJECTILE: 16
+  PROJECTILE: 16,
+  ENEMY_PROJECTILE: 32
 };
 
 /**
@@ -36,6 +37,18 @@ export class ProjectileManager {
    */
   spawnProjectile(position, direction, damage) {
     const proj = new Projectile(this.scene, this.physicsWorld, position, direction, damage, this.speed);
+    this.projectiles.push(proj);
+    soundManager.playShoot();
+  }
+
+  /**
+   * Fire a new enemy fireball projectile
+   * @param {THREE.Vector3} position - spawn origin
+   * @param {THREE.Vector3} direction - normalized flying direction
+   * @param {number} damage - damage of demon
+   */
+  spawnEnemyProjectile(position, direction, damage) {
+    const proj = new EnemyProjectile(this.scene, this.physicsWorld, position, direction, damage, this.speed * 0.55);
     this.projectiles.push(proj);
     soundManager.playShoot();
   }
@@ -154,6 +167,98 @@ class Projectile {
     }
 
     // Explode on hit
+    this.isDead = true;
+  }
+
+  update(dt) {
+    this.elapsed += dt;
+    if (this.elapsed >= this.lifetime) {
+      this.isDead = true;
+    }
+
+    // Sync three.js mesh position
+    this.group.position.set(
+      this.body.position.x,
+      this.body.position.y,
+      this.body.position.z
+    );
+  }
+
+  destroy() {
+    this.scene.remove(this.group);
+    this.physicsWorld.removeBody(this.body);
+  }
+}
+
+/**
+ * Individual Enemy Projectile Entity
+ */
+class EnemyProjectile {
+  constructor(scene, physicsWorld, position, direction, damage, speed) {
+    this.scene = scene;
+    this.physicsWorld = physicsWorld;
+    this.damage = damage;
+    this.lifetime = 2000; // 2 seconds max lifetime
+    this.elapsed = 0;
+    this.isDead = false;
+
+    // 1. Mesh & Light
+    this.group = new THREE.Group();
+    this.group.position.copy(position);
+    this.scene.add(this.group);
+
+    // Glowing red-orange sprite
+    const mat = new THREE.SpriteMaterial({
+      map: textureGenerator.getProjectileTexture(),
+      color: 0xff3300,
+      transparent: true,
+      blending: THREE.AdditiveBlending
+    });
+    this.sprite = new THREE.Sprite(mat);
+    this.sprite.scale.set(0.5, 0.5, 1.0);
+    this.group.add(this.sprite);
+
+    // Small red light source
+    this.light = new THREE.PointLight(0xff3300, 1.5, 4);
+    this.group.add(this.light);
+
+    // 2. Physics Body
+    const radius = 0.25;
+    this.body = new CANNON.Body({
+      mass: 0.05,
+      shape: new CANNON.Sphere(radius),
+      position: new CANNON.Vec3(position.x, position.y, position.z),
+      collisionFilterGroup: COLLISION_GROUPS.ENEMY_PROJECTILE,
+      // Collide with Walls and Player. DO NOT collide with other enemies or spawners.
+      collisionFilterMask: COLLISION_GROUPS.WALL | COLLISION_GROUPS.PLAYER
+    });
+    
+    this.body.velocity.set(
+      direction.x * speed,
+      0, // strictly horizontal
+      direction.z * speed
+    );
+
+    this.body.userData = { entity: this };
+    this.physicsWorld.addBody(this.body);
+
+    // Setup collision listener
+    this.body.addEventListener('collide', (e) => this.handleCollision(e));
+  }
+
+  handleCollision(event) {
+    if (this.isDead) return;
+
+    const targetBody = event.body;
+    if (targetBody && targetBody.userData) {
+      const type = targetBody.userData.type;
+      const entity = targetBody.userData.entity;
+
+      if (type === 'player' && entity && typeof entity.takeDamage === 'function') {
+        entity.takeDamage(this.damage);
+      }
+    }
+
     this.isDead = true;
   }
 

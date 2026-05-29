@@ -27,6 +27,9 @@ export class Enemy {
 
     this.isDeathClass = (enemyType === 'death');
     this.isThiefClass = (enemyType === 'thief');
+    this.isGruntClass = (enemyType === 'grunt');
+    this.isDemonClass = (enemyType === 'demon');
+    this.isSorcererClass = (enemyType === 'sorcerer');
 
     this.setupTypeStats();
 
@@ -55,6 +58,31 @@ export class Enemy {
       this.hasStolen = false;
       this.stolenItem = null;
       this.spriteTexture = textureGenerator.getThiefTexture();
+    } else if (this.isGruntClass) {
+      const multiplier = this.spawnerLvl === 3 ? 1.5 :
+                         this.spawnerLvl === 2 ? 1.2 : 1.0;
+      this.health = 50 * multiplier; // Tankier
+      this.speed = (2.2 + Math.random() * 0.8) * (this.spawnerLvl === 3 ? 1.2 : 1.0); // Slower
+      this.damageRate = 220 * multiplier; // Heavy melee hitter!
+      this.spriteTexture = textureGenerator.getGruntTexture();
+    } else if (this.isDemonClass) {
+      const multiplier = this.spawnerLvl === 3 ? 1.5 :
+                         this.spawnerLvl === 2 ? 1.2 : 1.0;
+      this.health = 30 * multiplier;
+      this.speed = (3.0 + Math.random() * 1.0) * (this.spawnerLvl === 3 ? 1.2 : 1.0);
+      this.damageRate = 100 * multiplier;
+      this.spriteTexture = textureGenerator.getDemonTexture();
+      this.shootCooldown = 2200; // Fireball cooldown
+      this.shootTimer = Math.random() * 1500;
+    } else if (this.isSorcererClass) {
+      const multiplier = this.spawnerLvl === 3 ? 1.5 :
+                         this.spawnerLvl === 2 ? 1.2 : 1.0;
+      this.health = 20 * multiplier; // Fragile
+      this.speed = (4.5 + Math.random() * 1.5) * (this.spawnerLvl === 3 ? 1.2 : 1.0); // Fast
+      this.damageRate = 150 * multiplier;
+      this.spriteTexture = textureGenerator.getSorcererTexture();
+      this.fadeState = 'visible';
+      this.fadeTimer = 0;
     } else {
       // Normal Ghost
       const multiplier = this.spawnerLvl === 3 ? 1.5 :
@@ -74,8 +102,11 @@ export class Enemy {
     });
     this.sprite = new THREE.Sprite(mat);
     
-    // Scale Death slightly larger for intimidation
-    const scale = this.isDeathClass ? 1.6 : this.isThiefClass ? 1.3 : 1.2;
+    // Scale based on class size
+    const scale = this.isDeathClass ? 1.6 : 
+                  this.isGruntClass ? 1.4 :
+                  this.isThiefClass ? 1.3 :
+                  this.isDemonClass ? 1.3 : 1.25;
     this.sprite.scale.set(scale, scale, 1.0);
     this.sprite.position.y = 0.6;
     
@@ -110,7 +141,7 @@ export class Enemy {
   /**
    * Tracks target coordinates (either player, or escape exit portals)
    */
-  update(dt, playerPos, exitPortalPos, playerObject) {
+  update(dt, playerPos, exitPortalPos, playerObject, projectileManager) {
     // Sync mesh position
     this.group.position.set(
       this.body.position.x,
@@ -159,10 +190,16 @@ export class Enemy {
     
     const distance = direction.length();
     
+    // Determine speed (Demons slow down to aim fireballs)
+    let actualSpeed = this.speed;
+    if (this.isDemonClass && distance <= 12.0 && distance >= 3.5) {
+      actualSpeed = this.speed * 0.25; // Slow down to fire
+    }
+    
     if (distance > 0.1) {
       direction.normalize();
-      this.body.velocity.x = direction.x * this.speed;
-      this.body.velocity.z = direction.z * this.speed;
+      this.body.velocity.x = direction.x * actualSpeed;
+      this.body.velocity.z = direction.z * actualSpeed;
 
       // Flip sprite X depending on walk direction
       if (direction.x > 0.05) {
@@ -191,6 +228,53 @@ export class Enemy {
       }
     }
 
+    // Demon shooting logic
+    if (this.isDemonClass && playerObject && !playerObject.isDead) {
+      this.shootTimer += dt;
+      const distToPlayer = this.group.position.distanceTo(playerPos);
+      if (distToPlayer <= 12.0 && distToPlayer >= 3.5) {
+        if (this.shootTimer >= this.shootCooldown) {
+          this.shootTimer = 0;
+          
+          // Aim at player
+          const dir = new THREE.Vector3().subVectors(playerPos, this.group.position);
+          dir.y = 0;
+          dir.normalize();
+          
+          // Spawn fireball slightly in front of the demon
+          const spawnPos = this.group.position.clone().add(dir.clone().multiplyScalar(0.6));
+          spawnPos.y = 0.6;
+          
+          if (projectileManager) {
+            const dmg = 80 * (this.spawnerLvl === 3 ? 1.5 : this.spawnerLvl === 2 ? 1.2 : 1.0);
+            projectileManager.spawnEnemyProjectile(spawnPos, dir, dmg);
+          }
+        }
+      }
+    }
+
+    // Sorcerer Stealth/Fade logic
+    if (this.isSorcererClass && playerObject && !playerObject.isDead) {
+      this.fadeTimer += dt;
+      const distToPlayer = this.group.position.distanceTo(playerPos);
+      
+      if (distToPlayer < 3.5) {
+        this.sprite.material.opacity = 1.0;
+        this.fadeState = 'visible';
+      } else {
+        if (this.fadeTimer >= 3500) {
+          this.fadeTimer = 0;
+          if (this.fadeState === 'visible') {
+            this.fadeState = 'stealth';
+            this.sprite.material.opacity = 0.15; // semi-invisible!
+          } else {
+            this.fadeState = 'visible';
+            this.sprite.material.opacity = 1.0;
+          }
+        }
+      }
+    }
+
     // Death Self-Vanish Mechanism
     if (this.isDeathClass && this.drainedHealth >= this.maxDrainedHealth) {
       this.isDead = true;
@@ -215,8 +299,17 @@ export class Enemy {
 
     this.health -= amount;
 
+    // Sorcerer Teleport reaction
+    if (this.isSorcererClass && this.health > 0 && Math.random() > 0.3) {
+      this.teleport();
+    }
+
     // Visual flash
-    const flashColor = this.isDeathClass ? 0xff0000 : this.isThiefClass ? 0x00ff00 : 0xff00ff;
+    const flashColor = this.isDeathClass ? 0xff0000 : 
+                       this.isThiefClass ? 0x00ff00 : 
+                       this.isGruntClass ? 0xd97706 :
+                       this.isDemonClass ? 0xff3300 :
+                       this.isSorcererClass ? 0x00ffff : 0xff00ff;
     this.sprite.material.color.setHex(flashColor);
     
     setTimeout(() => {
@@ -238,10 +331,76 @@ export class Enemy {
     this.physicsWorld.removeBody(this.body);
   }
 
-  createDeathParticles() {
-    const pCount = this.isDeathClass ? 24 : this.isThiefClass ? 14 : 8;
+  teleport() {
+    this.createTeleportEffect(this.group.position);
+    
+    // Choose random displacement angle & distance
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 3.5 + Math.random() * 2.5;
+    
+    const newX = this.body.position.x + Math.cos(angle) * dist;
+    const newZ = this.body.position.z + Math.sin(angle) * dist;
+    
+    // Set physics body position directly
+    this.body.position.set(newX, 0.5, newZ);
+    this.body.velocity.set(0, 0, 0);
+    
+    this.createTeleportEffect(new THREE.Vector3(newX, 0.5, newZ));
+    soundManager.playHit(); // audio cue
+  }
+
+  createTeleportEffect(pos) {
+    const pCount = 12;
     const geo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
-    const colorHex = this.isDeathClass ? 0x222222 : this.isThiefClass ? 0x33ff66 : 0xcc33ff;
+    const mat = new THREE.MeshBasicMaterial({ 
+      color: 0x00ffff, 
+      transparent: true, 
+      opacity: 0.8 
+    });
+    
+    for (let i = 0; i < pCount; i++) {
+      const p = new THREE.Mesh(geo, mat);
+      p.position.copy(pos);
+      p.position.y += 0.4;
+      
+      const velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 4,
+        Math.random() * 4 + 1.5,
+        (Math.random() - 0.5) * 4
+      );
+
+      this.scene.add(p);
+      
+      const startTime = Date.now();
+      const lifeTime = 300 + Math.random() * 300;
+      
+      const pAnim = () => {
+        const elapsed = Date.now() - startTime;
+        if (elapsed > lifeTime) {
+          this.scene.remove(p);
+        } else {
+          p.position.x += velocity.x * 0.016;
+          p.position.z += velocity.z * 0.016;
+          p.position.y += velocity.y * 0.016;
+          requestAnimationFrame(pAnim);
+        }
+      };
+      pAnim();
+    }
+  }
+
+  createDeathParticles() {
+    const pCount = this.isDeathClass ? 24 : 
+                   this.isThiefClass ? 14 : 
+                   this.isGruntClass ? 16 :
+                   this.isDemonClass ? 16 :
+                   this.isSorcererClass ? 12 : 8;
+    const geo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
+    const colorHex = this.isDeathClass ? 0x222222 : 
+                     this.isThiefClass ? 0x33ff66 : 
+                     this.isGruntClass ? 0x995522 :
+                     this.isDemonClass ? 0xff3300 :
+                     this.isSorcererClass ? 0x00ffff : 0xcc33ff;
     const mat = new THREE.MeshBasicMaterial({ color: colorHex });
     
     for (let i = 0; i < pCount; i++) {

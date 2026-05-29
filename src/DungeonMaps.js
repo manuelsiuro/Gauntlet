@@ -5,7 +5,7 @@
  * Grid Key:
  * 0 = Floor
  * 1 = Wall
- * 2 = Spawner (Level 1)
+ * 2 = Ghost Spawner (Level 1)
  * 3 = Player Start
  * 4 = Exit Portal
  * 5 = Destructible Food (+400 Health)
@@ -15,29 +15,39 @@
  * 9 = Poison (Green food, -200 Health)
  * 10 = Treasure Chest (+150 Score)
  * 11 = Trap Plate (Opens hidden walls in 3x3 radius)
- * 12 = Spawner (Level 2)
- * 13 = Spawner (Level 3)
+ * 12 = Ghost Spawner (Level 2)
+ * 13 = Ghost Spawner (Level 3)
  * 14 = Exit Portal (Level Skip - skips 2 levels)
+ * 15 = Wall Torch (flickering fire light)
+ * 16 = Floor Blood (blood splat decal)
+ * 17 = Floor Skulls (skulls debris decal)
+ * 18 = Wall Banner (medieval hanging banner)
+ * 19 = Floor Grate (rusty iron grate decal)
+ * 20 = Floor Cobweb (sticky cobweb decal)
+ * 21 = Floor Bones (ribcage/bone debris decal)
+ * 22-24 = Grunt Spawner (Levels 1-3)
+ * 25-27 = Demon Spawner (Levels 1-3)
+ * 28-30 = Sorcerer Spawner (Levels 1-3)
  */
 
 // Base Room Layout 1: The Tutorial / Entry Gates
 const mapBase1 = [
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 3, 0, 0, 1, 0, 0, 0, 0, 1, 6, 0, 0, 0, 1, 0, 0, 0, 5, 1],
-  [1, 0, 1, 0, 8, 0, 1, 1, 0, 8, 1, 1, 1, 0, 8, 0, 1, 1, 0, 1],
+  [1, 1, 15, 1, 1, 18, 1, 1, 1, 1, 1, 1, 15, 1, 1, 18, 1, 1, 1, 1],
+  [1, 3, 0, 16, 1, 20, 0, 0, 0, 1, 6, 0, 0, 17, 1, 21, 0, 0, 5, 1],
+  [1, 0, 15, 0, 8, 0, 1, 1, 0, 8, 1, 1, 1, 0, 8, 0, 1, 1, 0, 1],
   [1, 0, 1, 0, 1, 0, 1, 2, 0, 1, 0, 2, 1, 0, 1, 0, 1, 7, 0, 1],
   [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 1, 1, 1, 8, 1, 1, 0, 1, 0, 1, 0, 1, 1, 8, 1, 1, 0, 1, 1],
-  [1, 6, 0, 1, 0, 1, 0, 0, 0, 11,0, 0, 0, 1, 0, 6, 1, 0, 2, 1],
+  [1, 0, 0, 0, 16, 19, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 15, 1, 1, 8, 1, 1, 0, 1, 0, 1, 0, 1, 1, 8, 1, 15, 0, 1, 1],
+  [1, 6, 0, 1, 16, 1, 0, 0, 0, 11,0, 0, 0, 1, 0, 6, 1, 0, 2, 1],
   [1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1],
   [1, 1, 0, 8, 0, 0, 0, 1, 5, 2, 9, 1, 0, 0, 0, 0, 0, 8, 0, 1],
   [1, 5, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+  [1, 17, 0, 0, 20, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
   [1, 1, 1, 1, 0, 1, 1, 1, 1, 8, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-  [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 6, 0, 1, 0, 1],
+  [1, 0, 0, 1, 0, 0, 19, 0, 15, 0, 1, 0, 0, 0, 1, 6, 0, 1, 0, 1],
   [1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1],
-  [1, 2, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 2, 1, 0, 0, 0, 0, 1],
+  [1, 2, 16, 0, 0, 21, 1, 0, 1, 0, 1, 0, 1, 2, 1, 0, 0, 0, 0, 1],
   [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
   [1, 7, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 4, 1],
   [1, 0, 10,0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
@@ -184,12 +194,42 @@ export function getLevelMap(level) {
 
       if (cell === 2) {
         // Upgrade normal spawner (Level 1) to Level 2 or Level 3 on higher levels
+        let spawnerLvl = 1;
         if (lvl > 18) {
-          // Mostly Level 3 spawners, some Level 2
-          mapGrid[r][c] = Math.random() > 0.4 ? 13 : 12;
+          spawnerLvl = Math.random() > 0.4 ? 3 : 2;
         } else if (lvl > 8) {
-          // Level 2 spawners
-          mapGrid[r][c] = Math.random() > 0.5 ? 12 : 2;
+          spawnerLvl = Math.random() > 0.5 ? 2 : 1;
+        }
+        
+        // Randomize enemy type based on level progression
+        let enemyType = 'ghost';
+        const rand = Math.random();
+        if (lvl >= 10) {
+          // Ghost (40%), Grunt (20%), Demon (20%), Sorcerer (20%)
+          if (rand < 0.4) enemyType = 'ghost';
+          else if (rand < 0.6) enemyType = 'grunt';
+          else if (rand < 0.8) enemyType = 'demon';
+          else enemyType = 'sorcerer';
+        } else if (lvl >= 6) {
+          // Ghost (50%), Grunt (25%), Demon (25%)
+          if (rand < 0.5) enemyType = 'ghost';
+          else if (rand < 0.75) enemyType = 'grunt';
+          else enemyType = 'demon';
+        } else if (lvl >= 3) {
+          // Ghost (70%), Grunt (30%)
+          if (rand < 0.7) enemyType = 'ghost';
+          else enemyType = 'grunt';
+        }
+
+        // Map to correct grid code
+        if (enemyType === 'ghost') {
+          mapGrid[r][c] = spawnerLvl === 3 ? 13 : spawnerLvl === 2 ? 12 : 2;
+        } else if (enemyType === 'grunt') {
+          mapGrid[r][c] = spawnerLvl === 3 ? 24 : spawnerLvl === 2 ? 23 : 22;
+        } else if (enemyType === 'demon') {
+          mapGrid[r][c] = spawnerLvl === 3 ? 27 : spawnerLvl === 2 ? 26 : 25;
+        } else if (enemyType === 'sorcerer') {
+          mapGrid[r][c] = spawnerLvl === 3 ? 30 : spawnerLvl === 2 ? 29 : 28;
         }
       }
 
