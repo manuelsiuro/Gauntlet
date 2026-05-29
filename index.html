@@ -20,75 +20,98 @@
           <header class="game-header">
             <h1 id="start-title" class="pixel-text neon-text-red">GAUNTLET 3D</h1>
             <p class="subtitle-text">INSERT COIN TO PLAY</p>
-            <div style="text-align: center; margin: 15px 0;">
-              <a href="editor.html" class="pixel-btn" style="text-decoration: none; padding: 8px 15px; font-size: 14px; display: inline-block; background: rgba(147, 51, 234, 0.3); border-color: rgb(147, 51, 234); color: #fff;">LEVEL & TEXTURE EDITOR</a>
-            </div>
           </header>
 
-          <main class="class-selection-container">
+          <main class="class-selection-container" style="width: 100%;">
             <h2 class="pixel-text select-prompt">CHOOSE YOUR HERO</h2>
             <div class="class-grid">
               
               <!-- WARRIOR -->
               <div class="class-card warrior" id="card-warrior" tabindex="0" role="button" aria-label="Select Warrior Class">
-                <div class="class-icon warrior-icon"></div>
+                <div class="class-icon-wrapper">
+                  <svg viewBox="0 0 64 64" class="class-icon-svg warrior-svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                    <path d="M16 32 C16 18, 48 18, 48 32 Z" fill="rgba(255, 51, 102, 0.2)" stroke="var(--neon-red)"/>
+                    <path d="M16 32 H48 M32 32 V42" stroke="var(--neon-red)"/>
+                    <path d="M18 26 C12 24, 8 16, 12 10 C14 14, 18 20, 20 23" fill="none" stroke="#fff"/>
+                    <path d="M46 26 C52 24, 56 16, 52 10 C50 14, 46 20, 44 23" fill="none" stroke="#fff"/>
+                    <circle cx="26" cy="26" r="1.5" fill="#fff"/>
+                    <circle cx="38" cy="26" r="1.5" fill="#fff"/>
+                  </svg>
+                </div>
                 <h3 class="pixel-text class-title">WARRIOR</h3>
-                <p class="class-desc">"THOR"</p>
-                <ul class="class-stats">
-                  <li>HEALTH: <span class="stat-bar"><span class="bar-fill" style="width: 100%"></span></span></li>
-                  <li>SPEED: <span class="stat-bar"><span class="bar-fill" style="width: 50%"></span></span></li>
-                  <li>ATTACK: <span class="stat-bar"><span class="bar-fill" style="width: 90%"></span></span></li>
-                  <li>ARMOR: <span class="stat-bar"><span class="bar-fill" style="width: 70%"></span></span></li>
-                </ul>
+                <p class="class-desc">Strength & Defense</p>
+                <div class="class-level pixel-text">Lvl 1</div>
                 <button class="pixel-btn select-btn" id="btn-select-warrior">SELECT</button>
               </div>
 
               <!-- WIZARD -->
               <div class="class-card wizard" id="card-wizard" tabindex="0" role="button" aria-label="Select Wizard Class">
-                <div class="class-icon wizard-icon"></div>
+                <div class="class-icon-wrapper">
+                  <svg viewBox="0 0 64 64" class="class-icon-svg wizard-svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                    <path d="M12 36 L32 8 L52 36 Z" fill="rgba(51, 204, 255, 0.2)" stroke="var(--neon-blue)"/>
+                    <path d="M8 36 C8 36, 32 40, 56 36" stroke="var(--neon-blue)"/>
+                    <path d="M22 38 L32 54 L42 38" fill="none" stroke="#fff"/>
+                    <circle cx="32" cy="18" r="2.5" fill="#fff"/>
+                  </svg>
+                </div>
                 <h3 class="pixel-text class-title">WIZARD</h3>
-                <p class="class-desc">"MERLIN"</p>
-                <ul class="class-stats">
-                  <li>HEALTH: <span class="stat-bar"><span class="bar-fill" style="width: 50%"></span></span></li>
-                  <li>SPEED: <span class="stat-bar"><span class="bar-fill" style="width: 70%"></span></span></li>
-                  <li>ATTACK: <span class="stat-bar"><span class="bar-fill" style="width: 100%"></span></span></li>
-                  <li>ARMOR: <span class="stat-bar"><span class="bar-fill" style="width: 30%"></span></span></li>
-                </ul>
+                <p class="class-desc">Magic & Ranged</p>
+                <div class="class-level pixel-text">Lvl 1</div>
                 <button class="pixel-btn select-btn" id="btn-select-wizard">SELECT</button>
               </div>
 
               <!-- VALKYRIE -->
               <div class="class-card valkyrie" id="card-valkyrie" tabindex="0" role="button" aria-label="Select Valkyrie Class">
-                <div class="class-icon valkyrie-icon"></div>
+                <div class="class-icon-wrapper">
+                  <svg viewBox="0 0 64 64" class="class-icon-svg valkyrie-svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                    <path d="M20 32 C20 20, 44 20, 44 32" stroke="var(--neon-gold)"/>
+                    <path d="M20 32 H44 V36 H20 Z" fill="rgba(255, 204, 0, 0.2)" stroke="var(--neon-gold)"/>
+                    <path d="M32 32 V40" stroke="var(--neon-gold)"/>
+                    <path d="M16 28 L6 14 L12 28 Z" fill="none" stroke="#fff"/>
+                    <path d="M48 28 L58 14 L52 28 Z" fill="none" stroke="#fff"/>
+                  </svg>
+                </div>
                 <h3 class="pixel-text class-title">VALKYRIE</h3>
-                <p class="class-desc">"THYRA"</p>
-                <ul class="class-stats">
-                  <li>HEALTH: <span class="stat-bar"><span class="bar-fill" style="width: 80%"></span></span></li>
-                  <li>SPEED: <span class="stat-bar"><span class="bar-fill" style="width: 60%"></span></span></li>
-                  <li>ATTACK: <span class="stat-bar"><span class="bar-fill" style="width: 60%"></span></span></li>
-                  <li>ARMOR: <span class="stat-bar"><span class="bar-fill" style="width: 100%"></span></span></li>
-                </ul>
+                <p class="class-desc">Speed & Combat</p>
+                <div class="class-level pixel-text">Lvl 1</div>
                 <button class="pixel-btn select-btn" id="btn-select-valkyrie">SELECT</button>
               </div>
 
               <!-- ELF -->
               <div class="class-card elf" id="card-elf" tabindex="0" role="button" aria-label="Select Elf Class">
-                <div class="class-icon elf-icon"></div>
+                <div class="class-icon-wrapper">
+                  <svg viewBox="0 0 64 64" class="class-icon-svg elf-svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                    <path d="M16 36 C16 16, 48 16, 48 36 Z" fill="rgba(51, 255, 102, 0.2)" stroke="var(--neon-green)"/>
+                    <path d="M24 36 C24 28, 40 28, 40 36" stroke="var(--neon-green)"/>
+                    <path d="M44 14 C48 26, 48 38, 44 50" fill="none" stroke="#fff"/>
+                    <path d="M44 14 H42 M44 50 H42" stroke="#fff"/>
+                    <path d="M42 14 V50" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+                  </svg>
+                </div>
                 <h3 class="pixel-text class-title">ELF</h3>
-                <p class="class-desc">"QUESTOR"</p>
-                <ul class="class-stats">
-                  <li>HEALTH: <span class="stat-bar"><span class="bar-fill" style="width: 60%"></span></span></li>
-                  <li>SPEED: <span class="stat-bar"><span class="bar-fill" style="width: 100%"></span></span></li>
-                  <li>ATTACK: <span class="stat-bar"><span class="bar-fill" style="width: 50%"></span></span></li>
-                  <li>ARMOR: <span class="stat-bar"><span class="bar-fill" style="width: 40%"></span></span></li>
-                </ul>
+                <p class="class-desc">Agility & Archery</p>
+                <div class="class-level pixel-text">Lvl 1</div>
                 <button class="pixel-btn select-btn" id="btn-select-elf">SELECT</button>
               </div>
 
             </div>
+
+            <!-- Redesigned Main Editor Button -->
+            <div class="editor-btn-wrapper">
+              <a href="editor.html" class="editor-main-btn pixel-text">LEVEL & TEXTURE EDITOR</a>
+            </div>
           </main>
           
-          <footer class="game-footer">
+          <footer class="game-footer" style="width: 100%;">
+            <div class="footer-dashboard pixel-text">
+              <span class="hud-stat text-red">HP: 100</span>
+              <div class="dashboard-center">
+                <span class="dash-btn active">START GAME</span>
+                <span class="dash-btn">OPTIONS</span>
+                <span class="dash-btn">EXIT</span>
+              </div>
+              <span class="hud-stat text-green">SCORE: 0</span>
+            </div>
             <p class="instructions-text">Use WASD or Arrows to move. Left-Click or Space to shoot. E or Shift to use Potion.</p>
           </footer>
         </div>
