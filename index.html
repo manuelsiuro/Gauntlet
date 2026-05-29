@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gauntlet 3D - Retro-Modern Dungeon Crawler</title>
+    <meta name="description" content="Play Gauntlet 3D, a retro-modern WebGL dungeon crawler inspired by the 1985 classic. Choose a hero, explore the procedural maze, and defeat endless hordes!" />
+  </head>
+  <body>
+    <!-- Main game container for Three.js WebGL canvas -->
+    <div id="game-container" aria-label="Gauntlet 3D Gameplay Screen"></div>
+
+    <!-- UI Overlay Wrapper -->
+    <div id="ui-container">
+      
+      <!-- Start Screen / Class Selection -->
+      <section id="start-screen" class="overlay-panel active" aria-labelledby="start-title">
+        <div class="glass-card">
+          <header class="game-header">
+            <h1 id="start-title" class="pixel-text neon-text-red">GAUNTLET 3D</h1>
+            <p class="subtitle-text">INSERT COIN TO PLAY</p>
+            <div style="text-align: center; margin: 15px 0;">
+              <a href="editor.html" class="pixel-btn" style="text-decoration: none; padding: 8px 15px; font-size: 14px; display: inline-block; background: rgba(147, 51, 234, 0.3); border-color: rgb(147, 51, 234); color: #fff;">LEVEL & TEXTURE EDITOR</a>
+            </div>
+          </header>
+
+          <main class="class-selection-container">
+            <h2 class="pixel-text select-prompt">CHOOSE YOUR HERO</h2>
+            <div class="class-grid">
+              
+              <!-- WARRIOR -->
+              <div class="class-card warrior" id="card-warrior" tabindex="0" role="button" aria-label="Select Warrior Class">
+                <div class="class-icon warrior-icon"></div>
+                <h3 class="pixel-text class-title">WARRIOR</h3>
+                <p class="class-desc">"THOR"</p>
+                <ul class="class-stats">
+                  <li>HEALTH: <span class="stat-bar"><span class="bar-fill" style="width: 100%"></span></span></li>
+                  <li>SPEED: <span class="stat-bar"><span class="bar-fill" style="width: 50%"></span></span></li>
+                  <li>ATTACK: <span class="stat-bar"><span class="bar-fill" style="width: 90%"></span></span></li>
+                  <li>ARMOR: <span class="stat-bar"><span class="bar-fill" style="width: 70%"></span></span></li>
+                </ul>
+                <button class="pixel-btn select-btn" id="btn-select-warrior">SELECT</button>
+              </div>
+
+              <!-- WIZARD -->
+              <div class="class-card wizard" id="card-wizard" tabindex="0" role="button" aria-label="Select Wizard Class">
+                <div class="class-icon wizard-icon"></div>
+                <h3 class="pixel-text class-title">WIZARD</h3>
+                <p class="class-desc">"MERLIN"</p>
+                <ul class="class-stats">
+                  <li>HEALTH: <span class="stat-bar"><span class="bar-fill" style="width: 50%"></span></span></li>
+                  <li>SPEED: <span class="stat-bar"><span class="bar-fill" style="width: 70%"></span></span></li>
+                  <li>ATTACK: <span class="stat-bar"><span class="bar-fill" style="width: 100%"></span></span></li>
+                  <li>ARMOR: <span class="stat-bar"><span class="bar-fill" style="width: 30%"></span></span></li>
+                </ul>
+                <button class="pixel-btn select-btn" id="btn-select-wizard">SELECT</button>
+              </div>
+
+              <!-- VALKYRIE -->
+              <div class="class-card valkyrie" id="card-valkyrie" tabindex="0" role="button" aria-label="Select Valkyrie Class">
+                <div class="class-icon valkyrie-icon"></div>
+                <h3 class="pixel-text class-title">VALKYRIE</h3>
+                <p class="class-desc">"THYRA"</p>
+                <ul class="class-stats">
+                  <li>HEALTH: <span class="stat-bar"><span class="bar-fill" style="width: 80%"></span></span></li>
+                  <li>SPEED: <span class="stat-bar"><span class="bar-fill" style="width: 60%"></span></span></li>
+                  <li>ATTACK: <span class="stat-bar"><span class="bar-fill" style="width: 60%"></span></span></li>
+                  <li>ARMOR: <span class="stat-bar"><span class="bar-fill" style="width: 100%"></span></span></li>
+                </ul>
+                <button class="pixel-btn select-btn" id="btn-select-valkyrie">SELECT</button>
+              </div>
+
+              <!-- ELF -->
+              <div class="class-card elf" id="card-elf" tabindex="0" role="button" aria-label="Select Elf Class">
+                <div class="class-icon elf-icon"></div>
+                <h3 class="pixel-text class-title">ELF</h3>
+                <p class="class-desc">"QUESTOR"</p>
+                <ul class="class-stats">
+                  <li>HEALTH: <span class="stat-bar"><span class="bar-fill" style="width: 60%"></span></span></li>
+                  <li>SPEED: <span class="stat-bar"><span class="bar-fill" style="width: 100%"></span></span></li>
+                  <li>ATTACK: <span class="stat-bar"><span class="bar-fill" style="width: 50%"></span></span></li>
+                  <li>ARMOR: <span class="stat-bar"><span class="bar-fill" style="width: 40%"></span></span></li>
+                </ul>
+                <button class="pixel-btn select-btn" id="btn-select-elf">SELECT</button>
+              </div>
+
+            </div>
+          </main>
+          
+          <footer class="game-footer">
+            <p class="instructions-text">Use WASD or Arrows to move. Left-Click or Space to shoot. E or Shift to use Potion.</p>
+          </footer>
+        </div>
+      </section>
+
+      <!-- HUD overlay (heads up display) -->
+      <header id="hud" class="hud-panel hidden" aria-label="Game Heads-Up Display">
+        <div class="hud-item" id="hud-level-container">
+          <span class="hud-label pixel-text">LEVEL:</span>
+          <span class="hud-value pixel-text text-purple" id="hud-level-val">01</span>
+        </div>
+        <div class="hud-item" id="hud-class-container">
+          <span class="hud-label pixel-text">HERO:</span>
+          <span class="hud-value pixel-text text-yellow" id="hud-class-val">-</span>
+        </div>
+        <div class="hud-item" id="hud-health-container">
+          <span class="hud-label pixel-text">HEALTH:</span>
+          <span class="hud-value pixel-text text-red" id="hud-health-val">0000</span>
+        </div>
+        <div class="hud-item" id="hud-keys-container">
+          <span class="hud-label pixel-text">KEYS:</span>
+          <span class="hud-value pixel-text text-gold" id="hud-keys-val">0</span>
+        </div>
+        <div class="hud-item" id="hud-potions-container">
+          <span class="hud-label pixel-text">POTIONS:</span>
+          <span class="hud-value pixel-text text-blue" id="hud-potions-val">0</span>
+        </div>
+        <div class="hud-item" id="hud-score-container">
+          <span class="hud-label pixel-text">SCORE:</span>
+          <span class="hud-value pixel-text text-green" id="hud-score-val">0</span>
+        </div>
+      </header>
+
+      <!-- Game Over screen -->
+      <section id="game-over-screen" class="overlay-panel hidden" aria-labelledby="game-over-title">
+        <div class="glass-card">
+          <h2 id="game-over-title" class="pixel-text neon-text-red blink">GAME OVER</h2>
+          <p class="pixel-text score-report">YOUR FINAL SCORE: <span id="final-score" class="text-green">0</span></p>
+          <p class="pixel-text narration-log" id="narration-box">"VALKYRIE DIED FOR LACK OF FOOD"</p>
+          <button class="pixel-btn action-btn" id="btn-restart" aria-label="Restart Game">PLAY AGAIN</button>
+          <button class="pixel-btn action-btn hidden" id="btn-return-editor" aria-label="Return to Editor" style="margin-top: 15px; background: rgba(147, 51, 234, 0.4); border-color: rgb(147, 51, 234);">RETURN TO EDITOR</button>
+        </div>
+      </section>
+
+      <!-- Victory screen -->
+      <section id="victory-screen" class="overlay-panel hidden" aria-labelledby="victory-title">
+        <div class="glass-card">
+          <h2 id="victory-title" class="pixel-text neon-text-green">VICTORY</h2>
+          <p class="pixel-text victory-report">YOU ESCAPED THE GAUNTLET!</p>
+          <p class="pixel-text score-report">FINAL SCORE: <span id="victory-score" class="text-green">0</span></p>
+          <button class="pixel-btn action-btn" id="btn-restart-victory" aria-label="Restart Game">PLAY AGAIN</button>
+          <button class="pixel-btn action-btn hidden" id="btn-return-editor-victory" aria-label="Return to Editor" style="margin-top: 15px; background: rgba(147, 51, 234, 0.4); border-color: rgb(147, 51, 234);">RETURN TO EDITOR</button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Main Game Script Entry -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

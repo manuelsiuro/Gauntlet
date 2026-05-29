@@ -1,0 +1,486 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;600&display=swap');
+
+:root {
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-sans: 'Outfit', sans-serif;
+  --bg-dark: #07070c;
+  --neon-red: #ff3366;
+  --neon-green: #33ff66;
+  --neon-blue: #33ccff;
+  --neon-gold: #ffcc00;
+  --neon-purple: #cc33ff;
+  --glass-bg: rgba(13, 13, 25, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+  font-family: var(--font-sans);
+  color: #ffffff;
+}
+
+/* Three.js Canvas container */
+#game-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* UI Overlay container */
+#ui-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none; /* Let clicks pass through unless on active panels */
+}
+
+/* Utility classes */
+.pixel-text {
+  font-family: var(--font-pixel);
+  letter-spacing: 1px;
+}
+
+.neon-text-red {
+  color: #fff;
+  text-shadow: 
+    0 0 5px #fff,
+    0 0 10px var(--neon-red),
+    0 0 20px var(--neon-red),
+    0 0 40px var(--neon-red);
+}
+
+.neon-text-green {
+  color: #fff;
+  text-shadow: 
+    0 0 5px #fff,
+    0 0 10px var(--neon-green),
+    0 0 20px var(--neon-green),
+    0 0 40px var(--neon-green);
+}
+
+.text-red { color: var(--neon-red); }
+.text-green { color: var(--neon-green); }
+.text-blue { color: var(--neon-blue); }
+.text-gold { color: var(--neon-gold); }
+.text-yellow { color: #ffff33; }
+
+.hidden {
+  display: none !important;
+}
+
+/* Overlay Panels (Start, Game Over, Victory) */
+.overlay-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: auto; /* Re-enable pointer events for UI */
+  background: radial-gradient(circle, rgba(10, 10, 20, 0.4) 0%, rgba(5, 5, 10, 0.95) 100%);
+  transition: opacity 0.5s ease, visibility 0.5s;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 20;
+}
+
+.overlay-panel.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 90%;
+  width: 1000px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: floatCard 6s ease-in-out infinite;
+}
+
+@keyframes floatCard {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Start / Class Selection Screen */
+.game-header h1 {
+  font-size: 3.5rem;
+  margin-bottom: 10px;
+}
+
+.subtitle-text {
+  font-family: var(--font-pixel);
+  font-size: 0.85rem;
+  color: #778899;
+  letter-spacing: 3px;
+  margin-bottom: 40px;
+  animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+.select-prompt {
+  font-size: 1.1rem;
+  margin-bottom: 25px;
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px rgba(51, 204, 255, 0.5);
+}
+
+.class-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+/* Class Card styling */
+.class-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.class-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  transition: background-color 0.3s;
+}
+
+/* Class specific neon borders & highlights */
+.class-card.warrior::before { background-color: var(--neon-red); }
+.class-card.wizard::before { background-color: var(--neon-blue); }
+.class-card.valkyrie::before { background-color: var(--neon-gold); }
+.class-card.elf::before { background-color: var(--neon-green); }
+
+.class-card:hover, .class-card:focus {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.05);
+  outline: none;
+}
+
+.class-card.warrior:hover, .class-card.warrior:focus {
+  border-color: var(--neon-red);
+  box-shadow: 0 5px 15px rgba(255, 51, 102, 0.3);
+}
+
+.class-card.wizard:hover, .class-card.wizard:focus {
+  border-color: var(--neon-blue);
+  box-shadow: 0 5px 15px rgba(51, 204, 255, 0.3);
+}
+
+.class-card.valkyrie:hover, .class-card.valkyrie:focus {
+  border-color: var(--neon-gold);
+  box-shadow: 0 5px 15px rgba(255, 204, 0, 0.3);
+}
+
+.class-card.elf:hover, .class-card.elf:focus {
+  border-color: var(--neon-green);
+  box-shadow: 0 5px 15px rgba(51, 255, 102, 0.3);
+}
+
+.class-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  background-size: cover;
+  image-rendering: pixelated;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Temporary CSS sprites if portraits fail to render */
+.warrior-icon { background: radial-gradient(circle, var(--neon-red) 20%, transparent 60%); }
+.wizard-icon { background: radial-gradient(circle, var(--neon-blue) 20%, transparent 60%); }
+.valkyrie-icon { background: radial-gradient(circle, var(--neon-gold) 20%, transparent 60%); }
+.elf-icon { background: radial-gradient(circle, var(--neon-green) 20%, transparent 60%); }
+
+.class-title {
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+
+.class-desc {
+  font-size: 0.65rem;
+  font-family: var(--font-pixel);
+  color: #888899;
+  margin-bottom: 20px;
+}
+
+.class-stats {
+  list-style: none;
+  width: 100%;
+  font-size: 0.75rem;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.class-stats li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #bbbbcc;
+}
+
+.stat-bar {
+  display: inline-block;
+  width: 60px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  background: #ffffff;
+}
+
+.warrior .bar-fill { background: var(--neon-red); }
+.wizard .bar-fill { background: var(--neon-blue); }
+.valkyrie .bar-fill { background: var(--neon-gold); }
+.elf .bar-fill { background: var(--neon-green); }
+
+/* Pixel Buttons */
+.pixel-btn {
+  font-family: var(--font-pixel);
+  font-size: 0.7rem;
+  padding: 10px 18px;
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  width: 100%;
+  margin-top: auto;
+}
+
+.class-card.warrior .pixel-btn { border-color: rgba(255, 51, 102, 0.4); }
+.class-card.wizard .pixel-btn { border-color: rgba(51, 204, 255, 0.4); }
+.class-card.valkyrie .pixel-btn { border-color: rgba(255, 204, 0, 0.4); }
+.class-card.elf .pixel-btn { border-color: rgba(51, 255, 102, 0.4); }
+
+.class-card.warrior:hover .pixel-btn, .class-card.warrior .pixel-btn:hover { background: var(--neon-red); border-color: var(--neon-red); color: #000; box-shadow: 0 0 10px var(--neon-red); }
+.class-card.wizard:hover .pixel-btn, .class-card.wizard .pixel-btn:hover { background: var(--neon-blue); border-color: var(--neon-blue); color: #000; box-shadow: 0 0 10px var(--neon-blue); }
+.class-card.valkyrie:hover .pixel-btn, .class-card.valkyrie .pixel-btn:hover { background: var(--neon-gold); border-color: var(--neon-gold); color: #000; box-shadow: 0 0 10px var(--neon-gold); }
+.class-card.elf:hover .pixel-btn, .class-card.elf .pixel-btn:hover { background: var(--neon-green); border-color: var(--neon-green); color: #000; box-shadow: 0 0 10px var(--neon-green); }
+
+.instructions-text {
+  font-size: 0.9rem;
+  color: #8888aa;
+  max-width: 600px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+
+/* HUD Overlay Panel */
+.hud-panel {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 900px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 15;
+  pointer-events: auto; /* Re-enable clicks so buttons/sliders could be placed */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  border-bottom: 2px solid rgba(51, 204, 255, 0.3);
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.hud-label {
+  font-size: 0.65rem;
+  color: #8888aa;
+}
+
+.hud-value {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* Game Over / Victory Screen Overlays */
+#game-over-screen .glass-card {
+  border-color: var(--neon-red);
+  box-shadow: 0 0 30px rgba(255, 51, 102, 0.4);
+}
+
+#victory-screen .glass-card {
+  border-color: var(--neon-green);
+  box-shadow: 0 0 30px rgba(51, 255, 102, 0.4);
+}
+
+#game-over-screen h2, #victory-screen h2 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.blink {
+  animation: blinkAnim 1s step-end infinite;
+}
+
+@keyframes blinkAnim {
+  50% { opacity: 0; }
+}
+
+.score-report {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.victory-report {
+  font-size: 1.1rem;
+  color: var(--neon-gold);
+  margin-bottom: 15px;
+}
+
+.narration-log {
+  font-size: 0.75rem;
+  color: #ffccff;
+  border: 1px dashed rgba(255, 204, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 4px;
+  margin-bottom: 30px;
+  max-width: 500px;
+  line-height: 1.4;
+}
+
+.action-btn {
+  font-size: 1rem;
+  padding: 15px 30px;
+  width: auto;
+  border-color: #fff;
+  background: transparent;
+  transition: all 0.3s;
+}
+
+.action-btn:hover {
+  background: #fff;
+  color: #000;
+  box-shadow: 0 0 20px #fff;
+}
+
+#game-over-screen .action-btn {
+  border-color: var(--neon-red);
+  color: var(--neon-red);
+}
+
+#game-over-screen .action-btn:hover {
+  background: var(--neon-red);
+  color: #000;
+  box-shadow: 0 0 20px var(--neon-red);
+}
+
+#victory-screen .action-btn {
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+}
+
+#victory-screen .action-btn:hover {
+  background: var(--neon-green);
+  color: #000;
+  box-shadow: 0 0 20px var(--neon-green);
+}
+
+/* Responsive Scaling */
+@media (max-width: 900px) {
+  .class-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  .game-header h1 {
+    font-size: 2.2rem;
+  }
+  #game-over-screen h2, #victory-screen h2 {
+    font-size: 2.2rem;
+  }
+  .hud-panel {
+    padding: 10px 15px;
+  }
+  .hud-value {
+    font-size: 0.85rem;
+  }
+  .hud-label {
+    font-size: 0.55rem;
+  }
+}
+
+@media (max-width: 500px) {
+  .class-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .glass-card {
+    padding: 20px;
+  }
+  .hud-panel {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  .hud-item {
+    min-width: 80px;
+  }
+}
