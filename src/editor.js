@@ -12,41 +12,41 @@ let selectedBrush = 1; // Default to Wall (1)
 let isDrawingMap = false;
 
 const BRUSHES = {
-  0: { name: 'Floor / Erase', color: '#0f0f1c', text: '' },
-  1: { name: 'Solid Wall', color: '#44445c', text: 'W' },
-  2: { name: 'Ghost Spawner L1', color: '#5b21b6', text: 'S1' },
-  12: { name: 'Ghost Spawner L2', color: '#7c3aed', text: 'S2' },
-  13: { name: 'Ghost Spawner L3', color: '#a78bfa', text: 'S3' },
-  22: { name: 'Grunt Spawner L1', color: '#991b1b', text: 'G1' },
-  23: { name: 'Grunt Spawner L2', color: '#dc2626', text: 'G2' },
-  24: { name: 'Grunt Spawner L3', color: '#f87171', text: 'G3' },
-  25: { name: 'Demon Spawner L1', color: '#c2410c', text: 'D1' },
-  26: { name: 'Demon Spawner L2', color: '#f97316', text: 'D2' },
-  27: { name: 'Demon Spawner L3', color: '#fdba74', text: 'D3' },
-  28: { name: 'Sorcerer Spawner L1', color: '#065f46', text: 'M1' },
-  29: { name: 'Sorcerer Spawner L2', color: '#0d9488', text: 'M2' },
-  30: { name: 'Sorcerer Spawner L3', color: '#2dd4bf', text: 'M3' },
-  3: { name: 'Hero Start', color: '#eab308', text: 'H' },
-  4: { name: 'Exit Portal', color: '#1e1b4b', text: 'X' },
-  14: { name: 'Skip Exit', color: '#db2777', text: 'XS' },
-  5: { name: 'Food (+400 HP)', color: '#b45309', text: 'F' },
-  6: { name: 'Key', color: '#d97706', text: 'K' },
-  7: { name: 'Potion (Bomb)', color: '#a855f7', text: 'PB' },
-  31: { name: 'Potion (Freeze)', color: '#06b6d4', text: 'PF' },
-  32: { name: 'Potion (Thunder)', color: '#eab308', text: 'PT' },
-  33: { name: 'Potion (Shield)', color: '#f97316', text: 'PS' },
-  34: { name: 'Potion (Heal)', color: '#ef4444', text: 'PH' },
-  8: { name: 'Locked Door', color: '#78350f', text: 'D' },
-  9: { name: 'Poison Food', color: '#22c55e', text: 'PS' },
-  10: { name: 'Treasure Chest', color: '#ca8a04', text: 'C' },
-  11: { name: 'Trap Plate', color: '#10b981', text: 'T' },
-  15: { name: 'Wall Torch', color: '#f97316', text: 'TL' },
-  16: { name: 'Floor Blood', color: '#dc2626', text: 'BL' },
-  17: { name: 'Floor Skulls', color: '#9ca3af', text: 'SK' },
-  18: { name: 'Wall Banner', color: '#ec4899', text: 'BN' },
-  19: { name: 'Floor Grate', color: '#6b7280', text: 'GR' },
-  20: { name: 'Floor Cobweb', color: '#cbd5e1', text: 'WB' },
-  21: { name: 'Floor Bones', color: '#e5e7eb', text: 'BO' }
+  0: { name: 'Floor / Erase', color: '#0f0f1c', text: '', category: 'dungeon' },
+  1: { name: 'Solid Wall', color: '#44445c', text: 'W', category: 'dungeon' },
+  2: { name: 'Ghost Spawner L1', color: '#5b21b6', text: 'S1', category: 'spawners' },
+  12: { name: 'Ghost Spawner L2', color: '#7c3aed', text: 'S2', category: 'spawners' },
+  13: { name: 'Ghost Spawner L3', color: '#a78bfa', text: 'S3', category: 'spawners' },
+  22: { name: 'Grunt Spawner L1', color: '#991b1b', text: 'G1', category: 'spawners' },
+  23: { name: 'Grunt Spawner L2', color: '#dc2626', text: 'G2', category: 'spawners' },
+  24: { name: 'Grunt Spawner L3', color: '#f87171', text: 'G3', category: 'spawners' },
+  25: { name: 'Demon Spawner L1', color: '#c2410c', text: 'D1', category: 'spawners' },
+  26: { name: 'Demon Spawner L2', color: '#f97316', text: 'D2', category: 'spawners' },
+  27: { name: 'Demon Spawner L3', color: '#fdba74', text: 'D3', category: 'spawners' },
+  28: { name: 'Sorcerer Spawner L1', color: '#065f46', text: 'M1', category: 'spawners' },
+  29: { name: 'Sorcerer Spawner L2', color: '#0d9488', text: 'M2', category: 'spawners' },
+  30: { name: 'Sorcerer Spawner L3', color: '#2dd4bf', text: 'M3', category: 'spawners' },
+  3: { name: 'Hero Start', color: '#eab308', text: 'H', category: 'dungeon' },
+  4: { name: 'Exit Portal', color: '#1e1b4b', text: 'X', category: 'dungeon' },
+  14: { name: 'Skip Exit', color: '#db2777', text: 'XS', category: 'dungeon' },
+  5: { name: 'Food (+400 HP)', color: '#b45309', text: 'F', category: 'items' },
+  6: { name: 'Key', color: '#d97706', text: 'K', category: 'items' },
+  7: { name: 'Potion (Bomb)', color: '#a855f7', text: 'PB', category: 'items' },
+  31: { name: 'Potion (Freeze)', color: '#06b6d4', text: 'PF', category: 'items' },
+  32: { name: 'Potion (Thunder)', color: '#eab308', text: 'PT', category: 'items' },
+  33: { name: 'Potion (Shield)', color: '#f97316', text: 'PS', category: 'items' },
+  34: { name: 'Potion (Heal)', color: '#ef4444', text: 'PH', category: 'items' },
+  8: { name: 'Locked Door', color: '#78350f', text: 'D', category: 'dungeon' },
+  9: { name: 'Poison Food', color: '#22c55e', text: 'PS', category: 'items' },
+  10: { name: 'Treasure Chest', color: '#ca8a04', text: 'C', category: 'items' },
+  11: { name: 'Trap Plate', color: '#10b981', text: 'T', category: 'dungeon' },
+  15: { name: 'Wall Torch', color: '#f97316', text: 'TL', category: 'decals' },
+  16: { name: 'Floor Blood', color: '#dc2626', text: 'BL', category: 'decals' },
+  17: { name: 'Floor Skulls', color: '#9ca3af', text: 'SK', category: 'decals' },
+  18: { name: 'Wall Banner', color: '#ec4899', text: 'BN', category: 'decals' },
+  19: { name: 'Floor Grate', color: '#6b7280', text: 'GR', category: 'decals' },
+  20: { name: 'Floor Cobweb', color: '#cbd5e1', text: 'WB', category: 'decals' },
+  21: { name: 'Floor Bones', color: '#e5e7eb', text: 'BO', category: 'decals' }
 };
 
 // TEXTURE EDITOR STATE
@@ -106,6 +106,10 @@ function initLevelEditor() {
   const paletteContainer = document.getElementById('palette-brushes');
   paletteContainer.innerHTML = '';
   
+  // Get active filter
+  const activeTab = document.querySelector('.filter-tab-btn.active');
+  const currentFilter = activeTab ? activeTab.dataset.filter : 'all';
+  
   Object.keys(BRUSHES).forEach(key => {
     const code = parseInt(key);
     const brush = BRUSHES[code];
@@ -113,6 +117,7 @@ function initLevelEditor() {
     const div = document.createElement('button');
     div.className = `brush-item ${code === selectedBrush ? 'active' : ''}`;
     div.dataset.code = code;
+    div.style.display = (currentFilter === 'all' || brush.category === currentFilter) ? 'flex' : 'none';
     
     const colorBlock = document.createElement('div');
     colorBlock.className = 'brush-color';
@@ -134,6 +139,27 @@ function initLevelEditor() {
     });
     
     paletteContainer.appendChild(div);
+  });
+
+  // Bind filter tab listeners
+  const filterBtns = document.querySelectorAll('.filter-tab-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      const filter = btn.dataset.filter;
+      const brushItems = document.querySelectorAll('.brush-item');
+      brushItems.forEach(item => {
+        const code = parseInt(item.dataset.code);
+        const brush = BRUSHES[code];
+        if (filter === 'all' || brush.category === filter) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
   });
 
   // Create default map grid with solid wall borders
