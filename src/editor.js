@@ -31,7 +31,11 @@ const BRUSHES = {
   14: { name: 'Skip Exit', color: '#db2777', text: 'XS' },
   5: { name: 'Food (+400 HP)', color: '#b45309', text: 'F' },
   6: { name: 'Key', color: '#d97706', text: 'K' },
-  7: { name: 'Potion (Bomb)', color: '#06b6d4', text: 'P' },
+  7: { name: 'Potion (Bomb)', color: '#a855f7', text: 'PB' },
+  31: { name: 'Potion (Freeze)', color: '#06b6d4', text: 'PF' },
+  32: { name: 'Potion (Thunder)', color: '#eab308', text: 'PT' },
+  33: { name: 'Potion (Shield)', color: '#f97316', text: 'PS' },
+  34: { name: 'Potion (Heal)', color: '#ef4444', text: 'PH' },
   8: { name: 'Locked Door', color: '#78350f', text: 'D' },
   9: { name: 'Poison Food', color: '#22c55e', text: 'PS' },
   10: { name: 'Treasure Chest', color: '#ca8a04', text: 'C' },
@@ -925,7 +929,7 @@ function generateRandomMaze() {
           mapGrid[r][c] = spawnerTypes[Math.floor(Math.random() * spawnerTypes.length)];
         } else if (rand < 0.10) {
           // Place random collectible
-          const items = [5, 6, 7, 10, 9, 11, 16, 17, 19, 20, 21];
+          const items = [5, 6, 7, 10, 9, 11, 16, 17, 19, 20, 21, 31, 32, 33, 34];
           mapGrid[r][c] = items[Math.floor(Math.random() * items.length)];
         } else if (rand < 0.14) {
           // Put a locked door

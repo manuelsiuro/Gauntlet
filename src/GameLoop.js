@@ -360,6 +360,7 @@ export class GameLoop {
         health: Math.max(0, Math.ceil(this.hero.health)),
         keys: this.hero.keys,
         potions: this.hero.potions,
+        potionType: this.hero.potionInventory.length > 0 ? this.hero.potionInventory[0] : null,
         score: this.hero.score,
         level: this.currentLevel,
         specialTimer: this.hero.specialTimer,
@@ -478,8 +479,8 @@ export class GameLoop {
           this.hero.heal(400);
         } else if (col.type === 6) {
           this.hero.collectKey();
-        } else if (col.type === 7) {
-          this.hero.collectPotion();
+        } else if (col.type === 7 || col.type === 31 || col.type === 32 || col.type === 33 || col.type === 34) {
+          this.hero.collectPotion(col.type);
         } else if (col.type === 9) {
           // Poison! hurts
           this.hero.takePoisonDamage();

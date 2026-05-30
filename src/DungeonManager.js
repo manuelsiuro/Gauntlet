@@ -199,8 +199,8 @@ export class DungeonManager {
           // Exits: 4 = Normal exit, 14 = Skip exit
           this.createExitPortal(worldPos, type === 14);
 
-        } else if (type === 5 || type === 6 || type === 7 || type === 9 || type === 10) {
-          // Items: 5=Food, 6=Key, 7=Potion, 9=Poison, 10=Chest
+        } else if (type === 5 || type === 6 || type === 7 || type === 9 || type === 10 || (type >= 31 && type <= 34)) {
+          // Items: 5=Food, 6=Key, 7=Potion (Bomb), 9=Poison, 10=Chest, 31-34=Freeze/Thunder/Shield/Heal Potions
           this.spawnCollectible(type, worldPos);
 
         } else if (type === 8) {
@@ -352,8 +352,14 @@ export class DungeonManager {
       texture = textureGenerator.getFoodTexture();
     } else if (type === 6) {
       texture = textureGenerator.getKeyTexture();
-    } else if (type === 7) {
+    } else if (type === 7 || type === 31 || type === 32 || type === 33 || type === 34) {
       texture = textureGenerator.getPotionTexture();
+      // Apply different colors to differentiate them visually
+      if (type === 7) colorHex = 0xcc33ff; // purple bomb
+      else if (type === 31) colorHex = 0x33ccff; // cyan freeze
+      else if (type === 32) colorHex = 0xffff33; // yellow thunder
+      else if (type === 33) colorHex = 0xff9900; // orange shield
+      else if (type === 34) colorHex = 0xff3366; // pink/red heal
     } else if (type === 9) {
       // Poison: looks like green chicken leg
       texture = textureGenerator.getFoodTexture();

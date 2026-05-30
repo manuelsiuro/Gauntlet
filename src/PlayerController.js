@@ -196,9 +196,13 @@ export class PlayerController {
       // Save last movement vector to face correct direction when idle / firing spacebar
       this.lastMoveDir.copy(moveVec);
       
-      // Apply movement speed directly to Cannon.js velocity
-      this.hero.body.velocity.x = moveVec.x * this.hero.baseSpeed;
-      this.hero.body.velocity.z = moveVec.z * this.hero.baseSpeed;
+      // Apply movement speed directly to Cannon.js velocity (scaled up by 50% if shield potion is active)
+      let speed = this.hero.baseSpeed;
+      if (this.hero.shieldPotionActive) {
+        speed *= 1.5;
+      }
+      this.hero.body.velocity.x = moveVec.x * speed;
+      this.hero.body.velocity.z = moveVec.z * speed;
 
       // Anim flipping: flip sprite scale based on walk direction
       if (moveVec.x > 0.05) {

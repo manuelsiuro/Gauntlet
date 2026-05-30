@@ -40,6 +40,10 @@ export class Enemy {
 
     this.buildSprite();
     this.buildPhysics(position);
+
+    // Potion Freeze states
+    this.frozen = false;
+    this.frozenTimer = 0;
   }
 
   setupTypeStats() {
@@ -156,6 +160,24 @@ export class Enemy {
     }
 
     if (this.isDead) return;
+
+    // Handle Freeze Potion state
+    if (this.frozen) {
+      this.frozenTimer -= dt;
+      this.body.velocity.set(0, 0, 0); // Stop movement completely
+      
+      // Icy pulse animation
+      const p = Math.sin(Date.now() * 0.01) * 0.2 + 0.8;
+      if (this.sprite) {
+        this.sprite.material.color.setRGB(0.2 * p, 0.8 * p, 1.0);
+      }
+      
+      if (this.frozenTimer <= 0) {
+        this.frozen = false;
+        if (this.sprite) this.sprite.material.color.setHex(0xffffff);
+      }
+      return; // Skip normal AI update while frozen
+    }
 
     let targetPos = playerPos;
 
@@ -438,6 +460,15 @@ export class Enemy {
         }
       };
       pAnim();
+    }
+  }
+
+  freeze(duration) {
+    if (this.isDeathClass) return; // Death cannot be frozen!
+    this.frozen = true;
+    this.frozenTimer = duration;
+    if (this.sprite) {
+      this.sprite.material.color.setHex(0x33ccff); // Cyan tint
     }
   }
 }

@@ -28,6 +28,11 @@ export class Hero {
     this.score = 0;
     this.keys = 0;
     this.potions = 0;
+    this.potionInventory = [];
+
+    // Shield Potion states
+    this.shieldPotionActive = false;
+    this.shieldPotionTimer = 0;
 
     // Time accumulators for health drain
     this.healthDrainTimer = 0;
@@ -238,6 +243,34 @@ export class Hero {
         this.comboCount = 0;
       }
     }
+
+    // 5. Shield Potion timer
+    if (this.shieldPotionActive) {
+      this.shieldPotionTimer -= dt;
+      
+      const pulseVal = Math.sin(Date.now() * 0.015) * 0.5 + 0.5;
+      if (this.sprite) {
+        this.sprite.material.color.setRGB(1.0, 0.4 + pulseVal * 0.4, 0.0);
+      }
+      if (this.ringMesh) {
+        this.ringMesh.material.color.setRGB(1.0, 0.4 + pulseVal * 0.4, 0.0);
+        this.ringMesh.material.opacity = 0.8;
+      }
+      
+      if (this.shieldPotionTimer <= 0) {
+        this.shieldPotionActive = false;
+        if (this.sprite) this.sprite.material.color.setHex(0xffffff);
+        
+        // Restore original ring color
+        const origColor = this.classType === 'warrior' ? 0xff3366 :
+                          this.classType === 'wizard' ? 0x33ccff :
+                          this.classType === 'valkyrie' ? 0xffcc00 : 0x33ff66;
+        if (this.ringMesh) {
+          this.ringMesh.material.color.setHex(origColor);
+          this.ringMesh.material.opacity = 0.4;
+        }
+      }
+    }
   }
 
   /**
@@ -245,6 +278,18 @@ export class Hero {
    */
   takeDamage(amount) {
     if (this.isDead) return;
+
+    // Shield Potion invincibility check
+    if (this.shieldPotionActive) {
+      this.sprite.material.color.setHex(0xffffff);
+      setTimeout(() => {
+        if (this.sprite && this.shieldPotionActive) {
+          const pulseVal = Math.sin(Date.now() * 0.015) * 0.5 + 0.5;
+          this.sprite.material.color.setRGB(1.0, 0.4 + pulseVal * 0.4, 0.0);
+        }
+      }, 100);
+      return;
+    }
     
     // Valkyrie Aegis invincibility check
     if (this.specialActive && this.classType === 'valkyrie') {
@@ -309,10 +354,20 @@ export class Hero {
     this.score += 50;
   }
 
-  collectPotion() {
-    this.potions += 1;
+  collectPotion(potionType = 7) {
+    this.potionInventory.push(potionType);
+    this.potions = this.potionInventory.length;
     soundManager.playPickup();
-    soundManager.speak(`${this.className} found a potion.`);
+    
+    const potionNames = {
+      7: 'Bomb Potion',
+      31: 'Freeze Potion',
+      32: 'Thunder Potion',
+      33: 'Shield Potion',
+      34: 'Heal Potion'
+    };
+    const name = potionNames[potionType] || 'Potion';
+    soundManager.speak(`${this.className} found a ${name}.`);
     this.score += 100;
   }
 
@@ -323,53 +378,199 @@ export class Hero {
   }
 
   stealItem() {
-    if (this.potions > 0 && (Math.random() > 0.5 || this.keys === 0)) {
-      this.potions -= 1;
+    if (this.potionInventory.length > 0 && (Math.random() > 0.5 || this.keys === 0)) {
+      const stolenPotion = this.potionInventory.pop();
+      this.potions = this.potionInventory.length;
       soundManager.speak(`The Thief stole a potion!`, true);
-      return 'potion';
+      return { type: 'potion', potionType: stolenPotion };
     } else if (this.keys > 0) {
       this.keys -= 1;
       soundManager.speak(`The Thief stole a key!`, true);
-      return 'key';
+      return { type: 'key' };
     }
     return null;
   }
 
-  recoverItem(itemType) {
-    if (itemType === 'key') {
+  recoverItem(stolen) {
+    if (!stolen) return;
+    if (stolen.type === 'key') {
       this.keys += 1;
       soundManager.speak(`Recovered key!`, true);
-    } else if (itemType === 'potion') {
-      this.potions += 1;
+    } else if (stolen.type === 'potion') {
+      this.potionInventory.push(stolen.potionType);
+      this.potions = this.potionInventory.length;
       soundManager.speak(`Recovered potion!`, true);
     }
     soundManager.playPickup();
   }
 
   usePotion(enemies, spawners) {
-    if (this.potions <= 0) return;
-    this.potions -= 1;
-    soundManager.playSpawnerDestroy(); // Magic flash sound
-    soundManager.speak(`${this.className} cast a potion magic spell!`, true);
-
-    // Destroy all enemies within a large radius
-    const killRadius = 15.0;
+    if (this.potionInventory.length <= 0) return;
+    const potionType = this.potionInventory.shift();
+    this.potions = this.potionInventory.length;
     
-    // Kill nearby enemies
-    enemies.forEach(enemy => {
-      const dist = this.group.position.distanceTo(enemy.group.position);
-      if (dist < killRadius) {
-        enemy.takeDamage(999); // Instakill both normal enemies and Death
-      }
-    });
+    soundManager.playSpawnerDestroy(); // Magic flash sound
+    
+    const potionNames = {
+      7: 'Bomb',
+      31: 'Freeze',
+      32: 'Thunder',
+      33: 'Shield',
+      34: 'Heal'
+    };
+    const pName = potionNames[potionType] || 'Potion';
+    soundManager.speak(`${this.className} cast a ${pName} magic spell!`, true);
 
-    // Damage spawners in range
-    spawners.forEach(spawner => {
-      const dist = this.group.position.distanceTo(spawner.group.position);
-      if (dist < killRadius) {
-        spawner.takeDamage(50);
-      }
+    const killRadius = 15.0;
+    const playerPos = this.group.position;
+
+    if (potionType === 7) {
+      // 1. Bomb Potion: Deals massive damage
+      enemies.forEach(enemy => {
+        const dist = playerPos.distanceTo(enemy.group.position);
+        if (dist < killRadius) {
+          enemy.takeDamage(999);
+        }
+      });
+      spawners.forEach(spawner => {
+        const dist = playerPos.distanceTo(spawner.group.position);
+        if (dist < killRadius) {
+          spawner.takeDamage(50);
+        }
+      });
+      this.createPotionRingEffect(0xcc33ff); // Purple ring
+
+    } else if (potionType === 31) {
+      // 2. Freeze Potion: Freezes all enemies for 5 seconds
+      enemies.forEach(enemy => {
+        const dist = playerPos.distanceTo(enemy.group.position);
+        if (dist < killRadius) {
+          enemy.freeze(5000);
+        }
+      });
+      this.createPotionRingEffect(0x33ccff); // Cyan ring
+
+    } else if (potionType === 32) {
+      // 3. Thunder Potion: Strikes 5 random targets within 16 units with lightning
+      const targets = [];
+      enemies.forEach(e => {
+        if (playerPos.distanceTo(e.group.position) < 16) {
+          targets.push({ type: 'enemy', entity: e, pos: e.group.position });
+        }
+      });
+      spawners.forEach(s => {
+        if (playerPos.distanceTo(s.group.position) < 16) {
+          targets.push({ type: 'spawner', entity: s, pos: s.group.position });
+        }
+      });
+      
+      const shuffled = targets.sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 5);
+      
+      selected.forEach(target => {
+        this.triggerLightningStrike(target.pos);
+        if (target.type === 'enemy') {
+          target.entity.takeDamage(400);
+        } else {
+          target.entity.takeDamage(100);
+        }
+      });
+      this.createPotionRingEffect(0xffff33); // Yellow ring
+
+    } else if (potionType === 33) {
+      // 4. Shield Potion: Grants 6.0s speed and invincibility
+      this.triggerShieldPotion(6000);
+      this.createPotionRingEffect(0xff9900); // Orange ring
+
+    } else if (potionType === 34) {
+      // 5. Heal Potion: Restores 800 health
+      this.heal(800);
+      this.createPotionRingEffect(0xff3366); // Pink/Red ring
+    }
+  }
+
+  createPotionRingEffect(colorHex) {
+    const ringGeo = new THREE.RingGeometry(0.1, 1.0, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: colorHex,
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide
     });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.copy(this.group.position);
+    ring.position.y = 0.06;
+    this.scene.add(ring);
+
+    const startTime = Date.now();
+    const duration = 500;
+    const anim = () => {
+      const elapsed = Date.now() - startTime;
+      if (elapsed > duration) {
+        this.scene.remove(ring);
+      } else {
+        const t = elapsed / duration;
+        const scale = 1.0 + t * 14.0;
+        ring.scale.set(scale, scale, 1.0);
+        ringMat.opacity = 0.9 * (1.0 - t);
+        requestAnimationFrame(anim);
+      }
+    };
+    anim();
+  }
+
+  triggerLightningStrike(targetPos) {
+    const points = [];
+    const segments = 6;
+    const startY = 8.0;
+    const endY = targetPos.y;
+    for (let i = 0; i <= segments; i++) {
+      const t = i / segments;
+      const y = startY - t * (startY - endY);
+      const displ = (1.0 - t) * 0.35;
+      const dx = (Math.random() - 0.5) * displ;
+      const dz = (Math.random() - 0.5) * displ;
+      points.push(new THREE.Vector3(targetPos.x + dx, y, targetPos.z + dz));
+    }
+    
+    const curve = new THREE.CatmullRomCurve3(points);
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(20));
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff });
+    const glowMat = new THREE.LineBasicMaterial({ color: 0xffff33, transparent: true, opacity: 0.7 });
+    
+    const mainLine = new THREE.Line(lineGeo, lineMat);
+    const glowLine = new THREE.Line(lineGeo, glowMat);
+    glowLine.scale.set(1.2, 1.0, 1.2);
+    
+    this.scene.add(mainLine);
+    this.scene.add(glowLine);
+    
+    const strikeLight = new THREE.PointLight(0xffff33, 3.0, 6.0);
+    strikeLight.position.copy(targetPos);
+    strikeLight.position.y = 1.0;
+    this.scene.add(strikeLight);
+
+    const startTime = Date.now();
+    const anim = () => {
+      const elapsed = Date.now() - startTime;
+      if (elapsed > 200) {
+        this.scene.remove(mainLine);
+        this.scene.remove(glowLine);
+        this.scene.remove(strikeLight);
+      } else {
+        const opacity = 1.0 - (elapsed / 200);
+        glowMat.opacity = 0.7 * opacity;
+        lineMat.color.setHex(Math.random() > 0.5 ? 0xffffff : 0xffff00);
+        requestAnimationFrame(anim);
+      }
+    };
+    anim();
+  }
+
+  triggerShieldPotion(duration) {
+    this.shieldPotionActive = true;
+    this.shieldPotionTimer = duration;
   }
 
   die(reason) {

@@ -45,7 +45,22 @@ function updateHud(state) {
   if (hudLevelVal) hudLevelVal.textContent = state.level.toString().padStart(2, '0');
   if (hudHealthVal) hudHealthVal.textContent = state.health.toString().padStart(4, '0');
   if (hudKeysVal) hudKeysVal.textContent = state.keys.toString();
-  if (hudPotionsVal) hudPotionsVal.textContent = state.potions.toString();
+  
+  if (hudPotionsVal) {
+    if (state.potions > 0 && state.potionType) {
+      const potionNames = {
+        7: 'BOMB',
+        31: 'FREEZE',
+        32: 'THUNDER',
+        33: 'SHIELD',
+        34: 'HEAL'
+      };
+      const name = potionNames[state.potionType] || 'POTION';
+      hudPotionsVal.textContent = `${state.potions} (${name})`;
+    } else {
+      hudPotionsVal.textContent = "0";
+    }
+  }
   if (hudScoreVal) hudScoreVal.textContent = state.score.toString().padStart(5, '0');
 
   // Update Special Ability cooldown HUD text
